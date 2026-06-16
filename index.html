@@ -300,8 +300,8 @@
         <h3>แก้ไขโปรไฟล์</h3>
         <div class="mgmt-input-row"><label class="mgmt-label">ชื่อ</label><input type="text" id="p-mgmt-name" class="mgmt-input"></div>
         <div class="mgmt-input-row"><label class="mgmt-label">Bio</label><input type="text" id="p-mgmt-bio" class="mgmt-input"></div>
-        <div class="mgmt-input-row"><label class="mgmt-label">ไอดีรูปโปรไฟล์</label><input type="text" id="p-mgmt-pfp" class="mgmt-input"></div>
-        <div class="mgmt-input-row"><label class="mgmt-label">ไอดีรูปกรอบ</label><input type="text" id="p-mgmt-frame" class="mgmt-input"></div>
+        <div class="mgmt-input-row"><label class="mgmt-label">ไอดีรูปโปรไฟล์</label><input type="text" id="p-mgmt-pfp" class="mgmt-input" oninput="this.value = extractDriveId(this.value)"></div>
+        <div class="mgmt-input-row"><label class="mgmt-label">ไอดีรูปกรอบ</label><input type="text" id="p-mgmt-frame" class="mgmt-input" oninput="this.value = extractDriveId(this.value)"></div>
         <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold;" onclick="saveProfileMgmt()">บันทึก</button>
     </div>
 </div>
@@ -329,7 +329,7 @@
         </div>
         <div class="mgmt-input-row">
             <label class="mgmt-label">ไอดีรูปปก (Drive ID)</label>
-            <input type="text" id="mgmt-img-input" class="mgmt-input" placeholder="วางไอดีรูปภาพ...">
+            <input type="text" id="mgmt-img-input" class="mgmt-input" placeholder="วางไอดีรูปภาพ..." oninput="this.value = extractDriveId(this.value)">
         </div>
         <div class="mgmt-input-row">
             <label class="mgmt-label">รูปแบบการแสดงผล</label>
@@ -348,8 +348,8 @@
         <span class="modal-close" onclick="document.getElementById('char-mgmt-modal').style.display='none'">&times;</span>
         <h3>จัดการตัวละคร</h3>
         <div class="mgmt-input-row"><label class="mgmt-label">ชื่อตัวละคร</label><input type="text" id="c-mgmt-name" class="mgmt-input"></div>
-        <div class="mgmt-input-row"><label class="mgmt-label">ไอดีรูปหลัก (หน้าปกโฟลเดอร์)</label><input type="text" id="c-mgmt-img" class="mgmt-input"></div>
-        <div class="mgmt-input-row"><label class="mgmt-label">ไอดีกรอบรูปตัวละคร (ทิ้งว่างเพื่อใช้กรอบเริ่มต้น)</label><input type="text" id="c-mgmt-frame" class="mgmt-input"></div>
+        <div class="mgmt-input-row"><label class="mgmt-label">ไอดีรูปหลัก (หน้าปกโฟลเดอร์)</label><input type="text" id="c-mgmt-img" class="mgmt-input" oninput="this.value = extractDriveId(this.value)"></div>
+        <div class="mgmt-input-row"><label class="mgmt-label">ไอดีกรอบรูปตัวละคร (ทิ้งว่างเพื่อใช้กรอบเริ่มต้น)</label><input type="text" id="c-mgmt-frame" class="mgmt-input" oninput="this.value = extractDriveId(this.value)"></div>
         <div class="mgmt-input-row">
             <label class="mgmt-label">หมวดหมู่ (เลือกได้มากกว่า 1)</label>
             <div class="mgmt-tag-grid" id="c-mgmt-tag-list"></div>
@@ -363,7 +363,7 @@
         </div>
         <div id="c-mgmt-secondary-wrap" style="display:none; margin-top:10px;">
             <label class="mgmt-label">ไอดีรูปรอง (แสดงในหน้ารายละเอียดหลังกดยืนยัน)</label>
-            <input type="text" id="c-mgmt-secondary-img" class="mgmt-input">
+            <input type="text" id="c-mgmt-secondary-img" class="mgmt-input" oninput="this.value = extractDriveId(this.value)">
         </div>
 
         <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold; margin-top:20px;" onclick="saveCharMgmt()">บันทึกตัวละคร</button>
@@ -430,7 +430,7 @@
         <h3>แก้ไขไอดีกฎการใช้งาน</h3>
         <div class="mgmt-input-row">
             <label class="mgmt-label">Drive ID รูปภาพกฎ</label>
-            <input type="text" id="rules-id-input" class="mgmt-input" placeholder="วางไอดีรูปภาพที่นี่...">
+            <input type="text" id="rules-id-input" class="mgmt-input" placeholder="วางไอดีรูปภาพที่นี่..." oninput="this.value = extractDriveId(this.value)">
         </div>
         <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold;" onclick="saveRulesIdMgmt()">บันทึกไอดี</button>
     </div>
@@ -484,6 +484,13 @@
     let pendingCWChar = null;
     let currentGalleryImages = [];
     let currentImageIndex = 0;
+
+    // ฟังก์ชันสำหรับตัด Drive ID ออกจากลิงก์โดยอัตโนมัติ
+    function extractDriveId(value) {
+        if (!value) return "";
+        const match = value.match(/[-\w]{25,}/);
+        return match ? match[0] : value;
+    }
 
     async function loadData() {
         try {
@@ -814,7 +821,7 @@
         });
 
         div.innerHTML = `
-            <input type="text" class="mgmt-input g-url" placeholder="Drive ID รูป" value="${u}">
+            <input type="text" class="mgmt-input g-url" placeholder="Drive ID รูป" value="${u}" oninput="this.value = extractDriveId(this.value)">
             <div style="display:flex; gap:5px; margin-top:5px;">
                 <select class="mgmt-select g-folder-select" style="flex:1">${folderOptions}</select>
                 <button class="char-btn-ui" style="background:red" onclick="this.parentElement.remove()">X</button>
