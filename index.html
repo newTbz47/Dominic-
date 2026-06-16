@@ -226,7 +226,7 @@
             <div class="owner-profile-wrap">
                 <div class="owner-pfp-frame">
                     <img class="owner-frame-img" id="owner-frame-display" src="https://lh3.googleusercontent.com/u/0/d/1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC">
-                    <img class="owner-pfp-img" id="owner-pfp-display" src="https://lh3.googleusercontent.com/u/0/d/114MIoDzBDg13gvtV9ZzuUX4W9O1igmB1">
+                    <img class="owner-pfp-img" id="owner-pfp-display" src="https://lh3.googleusercontent.com/u/0/d/1SuwqVv1aEXGDvSmESqPYSAlihq74IvNQ">
                 </div>
                 <div class="owner-info">
                     <h2 id="owner-name-display">Dominic</h2>
@@ -468,7 +468,7 @@
         profile: {
             name: "Dominic",
             bio: "welcome to my character folders ♡",
-            pfp: "114MIoDzBDg13gvtV9ZzuUX4W9O1igmB1",
+            pfp: "1SuwqVv1aEXGDvSmESqPYSAlihq74IvNQ",
             frame: "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC"
         }
     };
@@ -499,7 +499,7 @@
             if(d.folderData) {
                 const parsed = JSON.parse(d.folderData);
                 rootData = {...rootData, ...parsed};
-                if (!rootData.profile) rootData.profile = { name: "Dominic", bio: "welcome to my character folders ♡", pfp: "114MIoDzBDg13gvtV9ZzuUX4W9O1igmB1", frame: "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC" };
+                if (!rootData.profile) rootData.profile = { name: "Dominic", bio: "welcome to my character folders ♡", pfp: "1SuwqVv1aEXGDvSmESqPYSAlihq74IvNQ", frame: "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC" };
             }
             else if (d.charList && d.charList.length > 0) rootData.characters = d.charList;
             adminPassInBase = (d.adminPass || "1234").toString();
