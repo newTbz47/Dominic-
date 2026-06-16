@@ -21,7 +21,6 @@
             margin: 0; padding: 0;
             background: linear-gradient(180deg, #000000 0%, #000000 50%, var(--bg-bottom) 100%) fixed;
             display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden;
-            /* text-transform: lowercase; */ /* ลบออกตามคำสั่ง */
         }
 
         /* ล็อก Scroll พื้นหลังเมื่อเปิด Lightbox */
@@ -85,6 +84,9 @@
         .char-frame-img { position: absolute; top: 50%; left: 50%; width: 140%; height: 140%; transform: translate(-50%, -50%); z-index: 2; pointer-events: none; }
         .char-thumb { width: 88%; margin: 6%; position: relative; z-index: 1; border-radius: 2px; aspect-ratio: 1/1; object-fit: cover; }
         .char-name-label { margin-top: 5px; color: white; font-size: 16px; text-align: center; }
+        
+        /* ปุ่มแก้ไขต้องอยู่บนสุด */
+        .admin-char-controls { position: relative; z-index: 20; }
 
         /* --- Modals --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; justify-content: center; align-items: center; }
@@ -164,7 +166,6 @@
             .ipad-layout { width: 100vw; }
             .page-container { padding: 20px; }
             .folder-grid, .char-grid, .solo-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; }
-            /* สลับ masonry เป็น grid ปกติในมือถือเพื่อให้จัดคอลัมน์ง่าย */
             .display-col { display: contents; }
             .char-card { margin-bottom: 15px; }
             .gallery-col { display: contents; }
@@ -557,16 +558,17 @@
     }
 
     function renderCharGrid(chars, cols) {
-        // เช็คขนาดหน้าจอเพื่อปรับจำนวนคอลัมน์ใน JavaScript
         const isMobile = window.innerWidth < 768;
-        chars.forEach((char, idx) => {
+        chars.forEach((char) => {
             const card = document.createElement('div'); card.className = 'char-card';
-            let adminHtml = isAdmin ? `<div style="margin-top:5px"><span class="admin-mini-btn" onclick="openCharMgmt(${idx})">แก้ไข</span><span class="admin-mini-btn" style="color:red" onclick="deleteChar(${idx})">ลบ</span></div>` : "";
-            card.innerHTML = `<div class="char-frame-wrap" onclick="openPopDetails(${JSON.stringify(char).replace(/"/g, '&quot;')})"><img class="char-frame-img" src="${char.frame ? `https://lh3.googleusercontent.com/u/0/d/${char.frame}` : FRAME_IMG}"><img class="char-thumb" src="${char.img.startsWith('data:') ? char.img : `https://lh3.googleusercontent.com/u/0/d/${char.img}`}" loading="lazy"></div><div class="char-name-label">${char.name}</div>${adminHtml}`;
+            
+            // นำปุ่มแก้ไขออกจากหน้า Grid เพื่อย้ายไปไว้ข้างในแทน
+            let adminHtml = "";
+            
+            card.innerHTML = `<div class="char-frame-wrap" onclick="openPopDetails(${JSON.stringify(char).replace(/"/g, '&quot;')})"><img class="char-frame-img" src="${char.frame ? `https://lh3.googleusercontent.com/u/0/d/${char.frame}` : ROSE_FRAME_ID}"><img class="char-thumb" src="${char.img.startsWith('data:') ? char.img : `https://lh3.googleusercontent.com/u/0/d/${char.img}`}" loading="lazy"></div><div class="char-name-label">${char.name}</div>${adminHtml}`;
             
             let targetCol;
             if (isMobile) {
-                // สำหรับมือถือ กระจายลงแค่ 2 คอลัมน์
                 targetCol = cols[0].childElementCount <= cols[1].childElementCount ? cols[0] : cols[1];
             } else {
                 targetCol = cols.reduce((p, c) => p.childElementCount <= c.childElementCount ? p : c);
@@ -595,9 +597,7 @@
             document.querySelectorAll('.category-bar .filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         } else {
-            // ลบสถานะ All ออกก่อน
             document.querySelector('.category-bar .filter-btn[data-tag="All"]').classList.remove('active');
-            
             if (activeTags.includes(tag)) {
                 activeTags = activeTags.filter(t => t !== tag);
                 btn.classList.remove('active');
@@ -605,8 +605,6 @@
                 activeTags.push(tag);
                 btn.classList.add('active');
             }
-            
-            // ถ้าไม่เหลือที่เลือกเลย ให้กลับไป All
             if (activeTags.length === 0) {
                 document.querySelector('.category-bar .filter-btn[data-tag="All"]').classList.add('active');
             }
@@ -662,7 +660,17 @@
                             <div>${(Array.isArray(char.tags) ? char.tags : (char.tag ? [char.tag] : [])).map(t => `<span class="solo-tag-pill">${t}</span>`).join('')}</div>
                         </div>
                     </div>
-                    <div class="solo-credit-card"><div style="font-size:11px;"><div>artist: <a href="${char.artistLink || '#'}" target="_blank">${char.artist || 'unknown'}</a></div><div>value: ${char.designValue || 'not set'}</div><div>usage: ${char.designUsage || 'personal'}</div></div>${isAdmin ? `<button class="admin-mini-btn" style="margin-top:10px; width:100%" onclick="openCreditMgmt()">edit info</button>` : ''}</div>
+                    <div style="display:flex; flex-direction:column; gap:5px;">
+                        ${isAdmin ? `<div style="display:flex; gap:5px;"><button class="admin-mini-btn" style="flex:1;" onclick="openCharMgmtByRef(currentlyViewedChar)">แก้ไขตัวละคร</button><button class="admin-mini-btn" style="flex:1; background:red;" onclick="deleteCharByRef(currentlyViewedChar)">ลบตัวละคร</button></div>` : ''}
+                        <div class="solo-credit-card">
+                            <div style="font-size:11px;">
+                                <div>artist: <a href="${char.artistLink || '#'}" target="_blank">${char.artist || 'unknown'}</a></div>
+                                <div>value: ${char.designValue || 'not set'}</div>
+                                <div>usage: ${char.designUsage || 'personal'}</div>
+                            </div>
+                            ${isAdmin ? `<button class="admin-mini-btn" style="margin-top:10px; width:100%" onclick="openCreditMgmt()">edit info</button>` : ''}
+                        </div>
+                    </div>
                 </div>
                 <div class="solo-main-content">
                     ${(listItems || isAdmin) ? `<div class="solo-section"><div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1.5px solid rgba(255,255,255,0.2); margin-bottom:10px;"><div class="solo-section-title" style="border:none; margin:0;">Basic Information</div>${isAdmin ? `<button class="char-btn-ui" style="border-color:#ffcc00; color:#ffcc00;" onclick="openBasicInfoMgmt()">edit info</button>` : ''}</div><ul class="basic-info-list">${listItems}</ul></div>` : ''}
@@ -679,87 +687,51 @@
 
     function addGalleryFolderField(val = '') { const div = document.createElement('div'); div.className = 'mgmt-input-row'; div.style.display='flex'; div.style.gap='5px'; div.innerHTML = `<input type="text" class="mgmt-input g-folder-name" value="${val}"><button class="char-btn-ui" style="background:red" onclick="this.parentElement.remove()">X</button>`; document.getElementById('gallery-folder-list').appendChild(div); }
 
-    // ฟังก์ชันจัดการรูปภาพแบบทีละรูป
     function openImageEditModal(idx) {
         imageEditIdx = idx;
         const target = document.getElementById('single-image-form-target');
         document.getElementById('image-edit-title').innerText = idx === -1 ? "เพิ่มรูปภาพใหม่" : "แก้ไขรูปภาพ";
-        
         let img = (idx === -1) ? { url: "", folder: "", artist: "", artistLink: "", usage: "" } : currentlyViewedChar.gallery[idx];
         let fOptions = `<option value="">(ไม่มีโฟลเดอร์)</option>`;
         const folders = Array.from(document.querySelectorAll('.g-folder-name')).map(i => i.value.trim()).filter(v => v);
-        // หากเป็นการเพิ่มรูปใหม่ ให้ดึงโฟลเดอร์จาก rootData.currentlyViewedChar ด้วย
         const currentFolders = currentlyViewedChar.galleryFolders || [];
         const uniqueFolders = [...new Set([...folders, ...currentFolders])];
-        
         uniqueFolders.forEach(fname => { fOptions += `<option value="${fname}" ${fname === img.folder ? 'selected' : ''}>${fname}</option>`; });
-
-        target.innerHTML = `
-            <div class="mgmt-input-row"><label class="mgmt-label">Drive ID</label><input type="text" id="s-g-url" class="mgmt-input" value="${img.url}" oninput="this.value = extractDriveId(this.value)"></div>
-            <div class="mgmt-input-row"><label class="mgmt-label">ศิลปิน</label><input type="text" id="s-g-artist" class="mgmt-input" value="${img.artist || ''}"></div>
-            <div class="mgmt-input-row"><label class="mgmt-label">ลิงก์ศิลปิน</label><input type="text" id="s-g-link" class="mgmt-input" value="${img.artistLink || ''}"></div>
-            <div class="mgmt-input-row"><label class="mgmt-label">Usage</label><input type="text" id="s-g-usage" class="mgmt-input" value="${img.usage || ''}"></div>
-            <div class="mgmt-input-row"><label class="mgmt-label">เลือกโฟลเดอร์</label><select id="s-g-folder" class="mgmt-select">${fOptions}</select></div>
-            ${idx !== -1 ? `<button class="char-btn-ui" style="background:red; width:100%; margin-top:10px;" onclick="deleteSingleImage(${idx})">ลบรูปภาพนี้</button>` : ''}
-        `;
+        target.innerHTML = `<div class="mgmt-input-row"><label class="mgmt-label">Drive ID</label><input type="text" id="s-g-url" class="mgmt-input" value="${img.url}" oninput="this.value = extractDriveId(this.value)"></div><div class="mgmt-input-row"><label class="mgmt-label">ศิลปิน</label><input type="text" id="s-g-artist" class="mgmt-input" value="${img.artist || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">ลิงก์ศิลปิน</label><input type="text" id="s-g-link" class="mgmt-input" value="${img.artistLink || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">Usage</label><input type="text" id="s-g-usage" class="mgmt-input" value="${img.usage || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">เลือกโฟลเดอร์</label><select id="s-g-folder" class="mgmt-select">${fOptions}</select></div>${idx !== -1 ? `<button class="char-btn-ui" style="background:red; width:100%; margin-top:10px;" onclick="deleteSingleImage(${idx})">ลบรูปภาพนี้</button>` : ''}`;
         document.getElementById('image-single-mgmt-modal').style.display = 'flex';
     }
 
     function saveSingleImageEdit() {
         const url = document.getElementById('s-g-url').value.trim();
         if(!url) return alert("กรุณาใส่ Drive ID");
-
-        const imgData = {
-            url: url,
-            artist: document.getElementById('s-g-artist').value.trim(),
-            artistLink: document.getElementById('s-g-link').value.trim(),
-            usage: document.getElementById('s-g-usage').value.trim(),
-            folder: document.getElementById('s-g-folder').value
-        };
-
+        const imgData = { url: url, artist: document.getElementById('s-g-artist').value.trim(), artistLink: document.getElementById('s-g-link').value.trim(), usage: document.getElementById('s-g-usage').value.trim(), folder: document.getElementById('s-g-folder').value };
         if(!currentlyViewedChar.gallery) currentlyViewedChar.gallery = [];
-        
-        if(imageEditIdx === -1) {
-            currentlyViewedChar.gallery.push(imgData);
-        } else {
-            currentlyViewedChar.gallery[imageEditIdx] = imgData;
-        }
-
+        if(imageEditIdx === -1) { currentlyViewedChar.gallery.push(imgData); } else { currentlyViewedChar.gallery[imageEditIdx] = imgData; }
         document.getElementById('image-single-mgmt-modal').style.display = 'none';
-        syncData();
-        showSoloViewActual();
+        syncData(); showSoloViewActual();
     }
 
     function deleteSingleImage(idx) {
         if(confirm("ต้องการลบรูปภาพนี้ใช่หรือไม่?")) {
             currentlyViewedChar.gallery.splice(idx, 1);
             document.getElementById('image-single-mgmt-modal').style.display = 'none';
-            syncData();
-            showSoloViewActual();
+            syncData(); showSoloViewActual();
         }
     }
 
     function saveGalleryFoldersOnly() {
         currentlyViewedChar.galleryFolders = Array.from(document.querySelectorAll('.g-folder-name')).map(i => i.value.trim()).filter(v => v);
         document.getElementById('gallery-mgmt-modal').style.display = 'none';
-        syncData();
-        showSoloViewActual();
+        syncData(); showSoloViewActual();
     }
 
     function openLightbox(idx) {
         currentImageIndex = idx; const img = currentGalleryImages[idx], char = currentlyViewedChar;
         const target = document.getElementById('lightbox-img-target'), artN = document.getElementById('lb-artist-name'), useT = document.getElementById('lb-usage-text'), bar = document.getElementById('lb-info-bar');
         target.src = `https://lh3.googleusercontent.com/u/0/d/${img.url}`;
-        
-        // แยกเครดิตชัดเจน: รูปในแกลเลอรีใช้เฉพาะเครดิตในแกลเลอรีเท่านั้น ไม่ดึงของนักออกแบบมาปน
         let aV = img.artist, aL = img.artistLink, uV = img.usage;
-        
-        if (aV) { artN.innerHTML = aL ? `<a href="${aL}" target="_blank">${aV}</a>` : aV; artN.parentElement.style.display = 'block'; } 
-        else { artN.parentElement.style.display = 'none'; }
-        
-        if (uV) { useT.innerText = uV; useT.parentElement.style.display = 'block'; } 
-        else { useT.parentElement.style.display = 'none'; }
-        
+        if (aV) { artN.innerHTML = aL ? `<a href="${aL}" target="_blank">${aV}</a>` : aV; artN.parentElement.style.display = 'block'; } else { artN.parentElement.style.display = 'none'; }
+        if (uV) { useT.innerText = uV; useT.parentElement.style.display = 'block'; } else { useT.parentElement.style.display = 'none'; }
         bar.style.display = (!aV && !uV) ? 'none' : 'flex';
         document.body.classList.add('lb-open'); document.getElementById('lightbox-modal').style.display = 'flex'; document.getElementById('lightbox-modal').scrollTop = 0;
     }
@@ -778,14 +750,7 @@
     function saveSoloBio() { currentlyViewedChar.bio = document.getElementById('solo-bio-input').value.trim(); syncData(); alert("Saved bio!"); showSoloViewActual(); }
     function closeSoloView() { document.getElementById('page-char-solo').style.display = 'none'; document.getElementById('char-main-list').style.display = 'block'; renderView(); }
 
-    function openProfileMgmt() { 
-        document.getElementById('p-mgmt-name').value = rootData.profile.name; 
-        document.getElementById('p-mgmt-bio').value = rootData.profile.bio; 
-        // ถ้าเป็น Base64 ให้แสดงช่องว่าง
-        document.getElementById('p-mgmt-pfp').value = rootData.profile.pfp.startsWith('data:') ? "" : rootData.profile.pfp; 
-        document.getElementById('p-mgmt-frame').value = rootData.profile.frame.startsWith('data:') ? "" : rootData.profile.frame; 
-        document.getElementById('profile-mgmt-modal').style.display = 'flex'; 
-    }
+    function openProfileMgmt() { document.getElementById('p-mgmt-name').value = rootData.profile.name; document.getElementById('p-mgmt-bio').value = rootData.profile.bio; document.getElementById('p-mgmt-pfp').value = rootData.profile.pfp.startsWith('data:') ? "" : rootData.profile.pfp; document.getElementById('p-mgmt-frame').value = rootData.profile.frame.startsWith('data:') ? "" : rootData.profile.frame; document.getElementById('profile-mgmt-modal').style.display = 'flex'; }
     function saveProfileMgmt() { rootData.profile.name = document.getElementById('p-mgmt-name').value.trim() || "Dominic"; rootData.profile.bio = document.getElementById('p-mgmt-bio').value.trim(); rootData.profile.pfp = document.getElementById('p-mgmt-pfp').value.trim() || NEW_DEFAULT_IMG; rootData.profile.frame = document.getElementById('p-mgmt-frame').value.trim() || ROSE_FRAME_ID; document.getElementById('profile-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
     function openFolderMgmt(idx) { folderEditIdx = idx; if (idx === -1) { document.getElementById('mgmt-name-input').value = ""; document.getElementById('mgmt-img-input').value = ""; document.getElementById('mgmt-display-style').value = "normal"; } else { const f = getCurrentFolder().subFolders[idx]; document.getElementById('mgmt-name-input').value = f.name; document.getElementById('mgmt-img-input').value = f.coverImg || ""; document.getElementById('mgmt-display-style').value = f.displayStyle || "normal"; } document.getElementById('folder-mgmt-modal').style.display = 'flex'; }
     function saveFolderMgmt() { const n = document.getElementById('mgmt-name-input').value.trim(), i = document.getElementById('mgmt-img-input').value.trim(), d = document.getElementById('mgmt-display-style').value, cur = getCurrentFolder(); if (!n) return; if (folderEditIdx === -1) cur.subFolders.push({ name: n, coverImg: i, displayStyle: d, subFolders: [], characters: [], description: "" }); else { let f = cur.subFolders[folderEditIdx]; f.name = n; f.coverImg = i; f.displayStyle = d; } document.getElementById('folder-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
@@ -793,6 +758,34 @@
     function saveFolderDesc() { getCurrentFolder().description = document.getElementById('mgmt-desc-input').value; document.getElementById('desc-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
     function getFolderOptions(f, p, l) { l.push({ name: f.name, path: [...p] }); f.subFolders.forEach((s, idx) => getFolderOptions(s, [...p, idx], l)); }
     function toggleCWSecondaryInput() { document.getElementById('c-mgmt-secondary-wrap').style.display = document.getElementById('c-mgmt-cw').checked ? 'block' : 'none'; }
+
+    // ฟังก์ชันช่วยหาโฟลเดอร์ที่เป็นเจ้าของตัวละครนี้ และลำดับจริงๆ ในโฟลเดอร์นั้น
+    function findParentFolderInfo(folder, char, path = []) {
+        let idx = folder.characters.indexOf(char);
+        if (idx !== -1) return { folder, index: idx, path };
+        for (let i = 0; i < folder.subFolders.length; i++) {
+            let res = findParentFolderInfo(folder.subFolders[i], char, [...path, i]);
+            if (res) return res;
+        }
+        return null;
+    }
+
+    function openCharMgmtByRef(char) {
+        const info = findParentFolderInfo(rootData, char);
+        if (!info) return;
+        currentPath = info.path; // ย้าย context ไปโฟลเดอร์ที่ตัวละครอยู่ชั่วคราว
+        openCharMgmt(info.index);
+    }
+
+    function deleteCharByRef(char) {
+        const info = findParentFolderInfo(rootData, char);
+        if (!info) return;
+        if(confirm("ลบตัวละครนี้?")) {
+            info.folder.characters.splice(info.index, 1);
+            syncData(); renderView();
+            closeSoloView(); // เพิ่มคำสั่งให้ปิดหน้า solo view หลังลบสำเร็จ
+        }
+    }
 
     function openCharMgmt(idx) {
         charEditIdx = idx; const select = document.getElementById('c-mgmt-folder'); select.innerHTML = ''; const options = []; getFolderOptions(rootData, [], options);
@@ -815,7 +808,8 @@
         const n = document.getElementById('c-mgmt-name').value.trim(), i = document.getElementById('c-mgmt-img').value.trim() || NEW_DEFAULT_IMG, f = document.getElementById('c-mgmt-frame').value.trim() || ROSE_FRAME_ID, isCW = document.getElementById('c-mgmt-cw').checked, si = document.getElementById('c-mgmt-secondary-img').value.trim(), targetP = JSON.parse(document.getElementById('c-mgmt-folder').value || "[]"), tags = Array.from(document.querySelectorAll('input[name="char-tag-cb"]:checked')).map(x => x.value);
         if (!n) return alert("ใส่ชื่อตัวละคร");
         let targetF = rootData; for (let idx of targetP) targetF = targetF.subFolders[idx];
-        const currentF = getCurrentFolder(); let charO = (charEditIdx === -1) ? { artist: "", bio: "", artistLink: "", rulesImg: "", designValue: "", designUsage: "Personal", basicInfo: [], gallery: [], galleryFolders: [] } : currentF.characters[charEditIdx];
+        const currentF = getCurrentFolder(); 
+        let charO = (charEditIdx === -1) ? { artist: "", bio: "", artistLink: "", rulesImg: "", designValue: "", designUsage: "Personal", basicInfo: [], gallery: [], galleryFolders: [] } : currentF.characters[charEditIdx];
         charO.name = n; charO.img = i; charO.frame = f; charO.tags = tags; charO.tag = tags[0] || 'mascot'; charO.isCW = isCW; charO.secondaryImg = si;
         if (charEditIdx === -1) targetF.characters.push(charO); else if (JSON.stringify(targetP) !== JSON.stringify(currentPath)) { currentF.characters.splice(charEditIdx, 1); targetF.characters.push(charO); }
         document.getElementById('char-mgmt-modal').style.display = 'none'; syncData(); renderView();
@@ -835,11 +829,9 @@
     function drawSnow() { ctx.clearRect(0,0,canvas.width,canvas.height); flakes.forEach(f => { ctx.beginPath(); ctx.arc(f.x,f.y,f.radius,0,Math.PI*2); ctx.fillStyle="white"; ctx.shadowBlur=8; ctx.shadowColor="#D3BCE6"; ctx.fill(); f.y+=f.speed; f.x+=f.wind; if (f.y > canvas.height) { f.y=-5; f.x=Math.random()*canvas.width; } }); requestAnimationFrame(drawSnow); }
     window.addEventListener('resize', initSnow); initSnow(); drawSnow();
     
-    // เอฟเฟกต์กดที่ติดทุกตำแหน่ง
     window.addEventListener('mousedown', (e) => { 
         const r = document.createElement('div'); 
         r.className='ripple'; 
-        // ปรับตำแหน่งให้ตรงกับจุดที่คลิกจริงๆ
         r.style.left = (e.clientX + window.scrollX) + 'px';
         r.style.top = (e.clientY + window.scrollY) + 'px';
         document.body.appendChild(r); 
