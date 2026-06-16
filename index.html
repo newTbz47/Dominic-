@@ -45,9 +45,12 @@
 
         /* --- Profile Section --- */
         .owner-profile-wrap { display: flex; align-items: center; gap: 25px; margin-bottom: 30px; background: rgba(0,0,0,0.3); padding: 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); position: relative; }
-        .owner-pfp-frame { width: 130px; height: 130px; position: relative; flex-shrink: 0; }
-        .owner-frame-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
-        .owner-pfp-img { width: 88%; height: 88%; margin: 6%; object-fit: cover; border-radius: 2px; }
+        /* ขนาด Container 130px เท่าเดิมเพื่อให้รูปโปรไฟล์ไม่ขยายตาม */
+        .owner-pfp-frame { width: 130px; height: 130px; position: relative; flex-shrink: 0; z-index: 5; }
+        /* ปรับขนาดภาพกรอบเป็น 140% และจัดกึ่งกลางให้ล้นออกมา */
+        .owner-frame-img { position: absolute; top: 50%; left: 50%; width: 140%; height: 140%; transform: translate(-50%, -50%); z-index: 2; pointer-events: none; }
+        .owner-pfp-img { width: 88%; height: 88%; margin: 6%; object-fit: cover; border-radius: 2px; aspect-ratio: 1/1; position: relative; z-index: 1; }
+        .owner-info { flex: 1; }
         .owner-info h2 { margin: 0; font-size: 28px; color: white; }
         .owner-info p { margin: 5px 0 0 0; font-size: 15px; color: var(--box-border); }
 
@@ -75,9 +78,12 @@
         .char-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         .display-col { display: flex; flex-direction: column; gap: 15px; }
         .char-card { width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; }
-        .char-frame-wrap { position: relative; width: 100%; cursor: pointer; line-height: 0; }
-        .char-frame-img { position: absolute; width: 100%; height: 100%; z-index: 2; }
-        .char-thumb { width: 88%; margin: 6%; position: relative; z-index: 1; border-radius: 2px; }
+        /* Container ตัวละครล็อคขนาดตามคอลัมน์เพื่อให้รูปข้างในเท่าเดิม */
+        .char-frame-wrap { position: relative; width: 100%; cursor: pointer; line-height: 0; z-index: 5; }
+        /* ปรับเฉพาะขนาดกรอบภาพเป็น 140% และจัดกึ่งกลางให้ล้นคอลัมน์ */
+        .char-frame-img { position: absolute; top: 50%; left: 50%; width: 140%; height: 140%; transform: translate(-50%, -50%); z-index: 2; pointer-events: none; }
+        /* รูปพอร์ตเทรตตัวละครขนาดเท่าเดิม (88% ของคอลัมน์) */
+        .char-thumb { width: 88%; margin: 6%; position: relative; z-index: 1; border-radius: 2px; aspect-ratio: 1/1; object-fit: cover; }
         .char-name-label { margin-top: 5px; color: white; font-size: 16px; text-align: center; }
 
         /* --- Modals --- */
@@ -225,8 +231,8 @@
 
             <div class="owner-profile-wrap">
                 <div class="owner-pfp-frame">
-                    <img class="owner-frame-img" id="owner-frame-display" src="https://lh3.googleusercontent.com/u/0/d/1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC">
-                    <img class="owner-pfp-img" id="owner-pfp-display" src="https://lh3.googleusercontent.com/u/0/d/1SuwqVv1aEXGDvSmESqPYSAlihq74IvNQ">
+                    <img class="owner-frame-img" id="owner-frame-display" src="https://lh3.googleusercontent.com/u/0/d/17RZqgplDGeyl_tMm80a-oiB3EPKPzvuv">
+                    <img class="owner-pfp-img" id="owner-pfp-display" src="https://lh3.googleusercontent.com/u/0/d/17RZqgplDGeyl_tMm80a-oiB3EPKPzvuv">
                 </div>
                 <div class="owner-info">
                     <h2 id="owner-name-display">Dominic</h2>
@@ -455,10 +461,11 @@
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycby-9Su85yUNOk3jwSOJPp52mYOn_a69UH389DVQwKTt1-rm6aCyBAXszWqbNtu40-90/exec";
-    const FRAME_IMG = "https://lh3.googleusercontent.com/u/0/d/1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC";
+    const FRAME_IMG = "https://lh3.googleusercontent.com/u/0/d/17RZqgplDGeyl_tMm80a-oiB3EPKPzvuv";
     const DEFAULT_FOLDER_ICON = "https://cdn-icons-png.flaticon.com/512/716/716784.png";
     const TAG_OPTIONS = ['mascot', 'forever home', 'yume', 'eo', 'sp', 'ota', 'freebie'];
     const ICON_COPY = "https://lh3.googleusercontent.com/u/0/d/1YuawN-quG1Nq1AvRr8O1VjTnfihirqQw";
+    const NEW_DEFAULT_IMG = "17RZqgplDGeyl_tMm80a-oiB3EPKPzvuv";
 
     let rootData = { 
         name: "home", 
@@ -468,8 +475,8 @@
         profile: {
             name: "Dominic",
             bio: "welcome to my character folders ♡",
-            pfp: "1SuwqVv1aEXGDvSmESqPYSAlihq74IvNQ",
-            frame: "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC"
+            pfp: NEW_DEFAULT_IMG,
+            frame: NEW_DEFAULT_IMG
         }
     };
     let currentPath = []; 
@@ -499,7 +506,28 @@
             if(d.folderData) {
                 const parsed = JSON.parse(d.folderData);
                 rootData = {...rootData, ...parsed};
-                if (!rootData.profile) rootData.profile = { name: "Dominic", bio: "welcome to my character folders ♡", pfp: "1SuwqVv1aEXGDvSmESqPYSAlihq74IvNQ", frame: "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC" };
+                
+                // --- Migration: บังคับเปลี่ยนรูปภาพและกรอบเก่าเป็นรูปใหม่ ---
+                if (!rootData.profile.pfp || rootData.profile.pfp === "" || rootData.profile.pfp === "114MIoDzBDg13gvtV9ZzuUX4W9O1igmB1") {
+                    rootData.profile.pfp = NEW_DEFAULT_IMG;
+                }
+                if (!rootData.profile.frame || rootData.profile.frame === "" || rootData.profile.frame === "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC") {
+                    rootData.profile.frame = NEW_DEFAULT_IMG;
+                }
+
+                const migrateData = (folder) => {
+                    folder.characters.forEach(c => {
+                        if (!c.img || c.img === "" || c.img === "114MIoDzBDg13gvtV9ZzuUX4W9O1igmB1") c.img = NEW_DEFAULT_IMG;
+                        if (!c.frame || c.frame === "" || c.frame === "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC") {
+                            c.frame = NEW_DEFAULT_IMG;
+                        }
+                    });
+                    folder.subFolders.forEach(migrateData);
+                };
+                migrateData(rootData);
+                // --------------------------------------------------------
+
+                if (!rootData.profile) rootData.profile = { name: "Dominic", bio: "welcome to my character folders ♡", pfp: NEW_DEFAULT_IMG, frame: NEW_DEFAULT_IMG };
             }
             else if (d.charList && d.charList.length > 0) rootData.characters = d.charList;
             adminPassInBase = (d.adminPass || "1234").toString();
@@ -935,10 +963,16 @@
     }
 
     function saveProfileMgmt() {
-        rootData.profile.name = document.getElementById('p-mgmt-name').value.trim();
-        rootData.profile.bio = document.getElementById('p-mgmt-bio').value.trim();
-        rootData.profile.pfp = document.getElementById('p-mgmt-pfp').value.trim();
-        rootData.profile.frame = document.getElementById('p-mgmt-frame').value.trim();
+        let name = document.getElementById('p-mgmt-name').value.trim();
+        let bio = document.getElementById('p-mgmt-bio').value.trim();
+        let pfp = document.getElementById('p-mgmt-pfp').value.trim();
+        let frame = document.getElementById('p-mgmt-frame').value.trim();
+
+        rootData.profile.name = name || "Dominic";
+        rootData.profile.bio = bio || "welcome to my character folders ♡";
+        rootData.profile.pfp = pfp || NEW_DEFAULT_IMG;
+        rootData.profile.frame = frame || NEW_DEFAULT_IMG;
+
         document.getElementById('profile-mgmt-modal').style.display = 'none';
         syncData(); renderView();
     }
@@ -1018,8 +1052,11 @@
             document.getElementById('c-mgmt-cw').checked = c.isCW || false;
             document.getElementById('c-mgmt-secondary-img').value = c.secondaryImg || "";
         } else {
-            document.getElementById('c-mgmt-name').value = ""; document.getElementById('c-mgmt-img').value = ""; document.getElementById('c-mgmt-frame').value = "";
-            document.getElementById('c-mgmt-cw').checked = false; document.getElementById('c-mgmt-secondary-img').value = "";
+            document.getElementById('c-mgmt-name').value = ""; 
+            document.getElementById('c-mgmt-img').value = NEW_DEFAULT_IMG; 
+            document.getElementById('c-mgmt-frame').value = "";
+            document.getElementById('c-mgmt-cw').checked = false; 
+            document.getElementById('c-mgmt-secondary-img').value = "";
         }
         toggleCWSecondaryInput();
 
