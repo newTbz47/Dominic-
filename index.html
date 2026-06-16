@@ -21,7 +21,7 @@
             margin: 0; padding: 0;
             background: linear-gradient(180deg, #000000 0%, #000000 50%, var(--bg-bottom) 100%) fixed;
             display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden;
-            text-transform: lowercase;
+            /* text-transform: lowercase; */ /* ลบออกตามคำสั่ง */
         }
 
         /* ล็อก Scroll พื้นหลังเมื่อเปิด Lightbox */
@@ -29,7 +29,7 @@
 
         /* --- ป้องกันรูปภาพ --- */
         img { -webkit-touch-callout: none !important; -webkit-user-drag: none !important; user-drag: none !important; pointer-events: none !important; }
-        .img-del-btn-float, .img-edit-btn, .admin-btn, .login-btn, .char-btn-ui, .save-btn, .modal-close, .lb-nav, .lb-close, .filter-btn, .accept-btn, .breadcrumb-item, .folder-item, .char-frame-wrap, .back-arrow, .lightbox-overlay, .cw-btn {
+        .img-del-btn-float, .img-edit-btn, .admin-btn, .login-btn, .char-btn-ui, .save-btn, .modal-close, .lb-nav, .lb-close, .filter-btn, .accept-btn, .breadcrumb-item, .folder-item, .char-frame-wrap, .back-arrow, .lightbox-overlay, .cw-btn, .scroll-top-btn {
             pointer-events: auto !important;
         }
         body.is-admin-active * { -webkit-user-select: auto !important; user-select: auto !important; }
@@ -149,12 +149,26 @@
 
         /* Effects */
         #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
-        .ripple { position: fixed; border: 2px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.05); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); animation: ripple-out 0.6s ease-out forwards; z-index: 9999; }
+        .ripple { position: fixed; border: 2px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.05); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); animation: ripple-out 0.6s ease-out forwards; z-index: 99999; }
         @keyframes ripple-out { from { width: 0; height: 0; opacity: 0.8; } to { width: 150px; height: 150px; opacity: 0; } }
 
         #cw-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; padding: 20px; }
         .cw-box { max-width: 500px; border: 2px solid #ff4444; padding: 40px; border-radius: 10px; }
         .cw-btn { padding: 10px 30px; margin: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; border:none; }
+
+        /* Scroll Top Button */
+        .scroll-top-btn { position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; background: var(--box-border); color: #000; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+        /* --- Mobile Adjustments --- */
+        @media (max-width: 767px) {
+            .ipad-layout { width: 100vw; }
+            .page-container { padding: 20px; }
+            .folder-grid, .char-grid, .solo-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; }
+            /* สลับ masonry เป็น grid ปกติในมือถือเพื่อให้จัดคอลัมน์ง่าย */
+            .display-col { display: contents; }
+            .char-card { margin-bottom: 15px; }
+            .gallery-col { display: contents; }
+        }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -169,6 +183,8 @@
         <button class="cw-btn" style="background:#444; color:white;" onclick="cancelCW()">ย้อนกลับ</button>
     </div>
 </div>
+
+<div class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()">↑</div>
 
 <div class="ipad-layout">
     <div class="page-container">
@@ -208,14 +224,14 @@
             </div>
 
             <div class="category-bar">
-                <div class="filter-btn active" onclick="setCategoryFilter('All', this)">all</div>
-                <div class="filter-btn" onclick="setCategoryFilter('mascot', this)">mascot</div>
-                <div class="filter-btn" onclick="setCategoryFilter('forever home', this)">forever home</div>
-                <div class="filter-btn" onclick="setCategoryFilter('yume', this)">yume</div>
-                <div class="filter-btn" onclick="setCategoryFilter('eo', this)">eo</div>
-                <div class="filter-btn" onclick="setCategoryFilter('sp', this)">sp</div>
-                <div class="filter-btn" onclick="setCategoryFilter('ota', this)">ota</div>
-                <div class="filter-btn" onclick="setCategoryFilter('freebie', this)">freebie</div>
+                <div class="filter-btn active" data-tag="All" onclick="setCategoryFilter('All', this)">all</div>
+                <div class="filter-btn" data-tag="mascot" onclick="setCategoryFilter('mascot', this)">mascot</div>
+                <div class="filter-btn" data-tag="forever home" onclick="setCategoryFilter('forever home', this)">forever home</div>
+                <div class="filter-btn" data-tag="yume" onclick="setCategoryFilter('yume', this)">yume</div>
+                <div class="filter-btn" data-tag="eo" onclick="setCategoryFilter('eo', this)">eo</div>
+                <div class="filter-btn" data-tag="sp" onclick="setCategoryFilter('sp', this)">sp</div>
+                <div class="filter-btn" data-tag="ota" onclick="setCategoryFilter('ota', this)">ota</div>
+                <div class="filter-btn" data-tag="freebie" onclick="setCategoryFilter('freebie', this)">freebie</div>
             </div>
 
             <div class="back-nav-row" id="back-nav-row">
@@ -225,7 +241,7 @@
             <div class="folder-grid" id="folder-display"></div>
             <div class="folder-description-area" id="folder-desc-display"></div>
 
-            <div class="char-grid">
+            <div class="char-grid" id="char-grid-main">
                 <div class="display-col" id="char-col-1"></div>
                 <div class="display-col" id="char-col-2"></div>
                 <div class="display-col" id="char-col-3"></div>
@@ -430,7 +446,6 @@
     const DEFAULT_FOLDER_ICON = "https://cdn-icons-png.flaticon.com/512/716/716784.png";
     const TAG_OPTIONS = ['mascot', 'forever home', 'yume', 'eo', 'sp', 'ota', 'freebie'];
     const ICON_COPY = "https://lh3.googleusercontent.com/u/0/d/1YuawN-quG1Nq1AvRr8O1VjTnfihirqQw";
-    // เปลี่ยนค่าเริ่มต้นเป็นรูปใส เพื่อป้องกันการเห็นรูปกรอบซ้อนตอนโหลด
     const NEW_DEFAULT_IMG = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
     const ROSE_FRAME_ID = "17RZqgplDGeyl_tMm80a-oiB3EPKPzvuv";
 
@@ -438,7 +453,7 @@
         name: "home", subFolders: [], characters: [], description: "",
         profile: { name: "Dominic", bio: "welcome to my character folders ♡", pfp: NEW_DEFAULT_IMG, frame: ROSE_FRAME_ID }
     };
-    let currentPath = [], viewMode = 'folder', activeTag = 'All', isAdmin = false, adminPassInBase = "1234", folderEditIdx = -1, charEditIdx = -1, termsAccepted = false, currentlyViewedChar = null, pendingCWChar = null, currentGalleryImages = [], currentImageIndex = 0;
+    let currentPath = [], viewMode = 'folder', activeTags = [], isAdmin = false, adminPassInBase = "1234", folderEditIdx = -1, charEditIdx = -1, termsAccepted = false, currentlyViewedChar = null, pendingCWChar = null, currentGalleryImages = [], currentImageIndex = 0;
     let imageEditIdx = -1; // สำหรับติดตามว่ากำลังแก้ไขรูป index ไหน
 
     function extractDriveId(value) {
@@ -503,11 +518,11 @@
             folder.subFolders.forEach((sub, idx) => {
                 const fDiv = document.createElement('div');
                 if (sub.displayStyle === 'flat') {
-                    fDiv.className = 'folder-item'; fDiv.style.gridColumn = "1 / -1"; fDiv.style.display = "block"; fDiv.style.borderBottom = "1px solid rgba(255,255,255,0.2)"; fDiv.style.padding = "15px 0 5px 0"; fDiv.style.marginBottom = "5px"; fDiv.onclick = () => { currentPath.push(idx); activeTag = 'All'; renderView(); };
+                    fDiv.className = 'folder-item'; fDiv.style.gridColumn = "1 / -1"; fDiv.style.display = "block"; fDiv.style.borderBottom = "1px solid rgba(255,255,255,0.2)"; fDiv.style.padding = "15px 0 5px 0"; fDiv.style.marginBottom = "5px"; fDiv.onclick = () => { currentPath.push(idx); activeTags = []; renderView(); };
                     let adminH = isAdmin ? `<span style="float:right;"><span class="admin-mini-btn" onclick="event.stopPropagation(); openFolderMgmt(${idx})">edit</span><span class="admin-mini-btn" style="background:red" onclick="event.stopPropagation(); deleteFolder(${idx})">del</span></span>` : "";
                     fDiv.innerHTML = `<div class="folder-name" style="text-align:left; font-size:16px; margin:0; font-weight:bold; display:inline-block;">${sub.name}</div>${adminH}${(sub.description) ? `<div style="font-size:12px; color:rgba(255,255,255,0.7); margin-top:4px; font-weight:normal; text-align:left;">${sub.description}</div>` : ""}`;
                 } else {
-                    fDiv.className = 'folder-item'; fDiv.onclick = () => { currentPath.push(idx); activeTag = 'All'; renderView(); };
+                    fDiv.className = 'folder-item'; fDiv.onclick = () => { currentPath.push(idx); activeTags = []; renderView(); };
                     let adminH = isAdmin ? `<div style="position:absolute; top:5px; right:5px; z-index:10; display:flex; flex-direction:column; align-items:flex-end;"><span class="admin-mini-btn" onclick="event.stopPropagation(); openFolderMgmt(${idx})">edit</span><span class="admin-mini-btn" style="background:red" onclick="event.stopPropagation(); deleteFolder(${idx})">del</span></div>` : "";
                     fDiv.innerHTML = `<img src="${sub.coverImg ? `https://lh3.googleusercontent.com/u/0/d/${sub.coverImg}` : DEFAULT_FOLDER_ICON}" class="folder-icon" loading="lazy"><div class="folder-name">${sub.name}</div>${adminH}`;
                 }
@@ -526,33 +541,79 @@
             function collect(f, list) { f.characters.forEach(c => list.push(c)); f.subFolders.forEach(s => collect(s, list)); }
             collect(rootData, charsToRender);
         }
-        if (activeTag !== 'All') charsToRender = charsToRender.filter(c => Array.isArray(c.tags) ? c.tags.includes(activeTag) : c.tag === activeTag);
+
+        // กรองตามหมวดหมู่ (Multi-select)
+        if (activeTags.length > 0) {
+            charsToRender = charsToRender.filter(c => {
+                const cTags = Array.isArray(c.tags) ? c.tags : [c.tag];
+                return activeTags.every(t => cTags.includes(t));
+            });
+        }
+
+        // เรียงลำดับตามตัวอักษร
+        charsToRender.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
         renderCharGrid(charsToRender, charCols);
     }
 
     function renderCharGrid(chars, cols) {
+        // เช็คขนาดหน้าจอเพื่อปรับจำนวนคอลัมน์ใน JavaScript
+        const isMobile = window.innerWidth < 768;
         chars.forEach((char, idx) => {
             const card = document.createElement('div'); card.className = 'char-card';
             let adminHtml = isAdmin ? `<div style="margin-top:5px"><span class="admin-mini-btn" onclick="openCharMgmt(${idx})">แก้ไข</span><span class="admin-mini-btn" style="color:red" onclick="deleteChar(${idx})">ลบ</span></div>` : "";
             card.innerHTML = `<div class="char-frame-wrap" onclick="openPopDetails(${JSON.stringify(char).replace(/"/g, '&quot;')})"><img class="char-frame-img" src="${char.frame ? `https://lh3.googleusercontent.com/u/0/d/${char.frame}` : FRAME_IMG}"><img class="char-thumb" src="${char.img.startsWith('data:') ? char.img : `https://lh3.googleusercontent.com/u/0/d/${char.img}`}" loading="lazy"></div><div class="char-name-label">${char.name}</div>${adminHtml}`;
-            cols.reduce((p, c) => p.childElementCount <= c.childElementCount ? p : c).appendChild(card);
+            
+            let targetCol;
+            if (isMobile) {
+                // สำหรับมือถือ กระจายลงแค่ 2 คอลัมน์
+                targetCol = cols[0].childElementCount <= cols[1].childElementCount ? cols[0] : cols[1];
+            } else {
+                targetCol = cols.reduce((p, c) => p.childElementCount <= c.childElementCount ? p : c);
+            }
+            targetCol.appendChild(card);
         });
     }
 
     function renderBreadcrumbs() {
         const bc = document.getElementById('breadcrumbs'); bc.innerHTML = '';
-        const homeBtn = document.createElement('span'); homeBtn.className = 'breadcrumb-item'; homeBtn.innerText = 'characters'; homeBtn.onclick = () => { currentPath = []; activeTag = 'All'; renderView(); };
+        const homeBtn = document.createElement('span'); homeBtn.className = 'breadcrumb-item'; homeBtn.innerText = 'characters'; homeBtn.onclick = () => { currentPath = []; activeTags = []; renderView(); };
         bc.appendChild(homeBtn);
         let tempPath = [], folder = rootData;
         currentPath.forEach((idx) => {
             bc.appendChild(document.createTextNode(' > ')); folder = folder.subFolders[idx]; tempPath.push(idx);
-            const btn = document.createElement('span'), targetPath = [...tempPath]; btn.className = 'breadcrumb-item'; btn.innerText = folder.name; btn.onclick = () => { currentPath = targetPath; activeTag = 'All'; renderView(); }; bc.appendChild(btn);
+            const btn = document.createElement('span'), targetPath = [...tempPath]; btn.className = 'breadcrumb-item'; btn.innerText = folder.name; btn.onclick = () => { currentPath = targetPath; activeTags = []; renderView(); }; bc.appendChild(btn);
         });
     }
 
-    function goBack() { if (currentPath.length > 0) { currentPath.pop(); activeTag = 'All'; renderView(); } }
+    function goBack() { if (currentPath.length > 0) { currentPath.pop(); activeTags = []; renderView(); } }
     function setViewMode(mode) { viewMode = mode; document.getElementById('mode-folder').style.background = (mode === 'folder') ? 'var(--box-border)' : 'rgba(255,255,255,0.1)'; document.getElementById('mode-folder').style.color = (mode === 'folder') ? 'black' : 'white'; document.getElementById('mode-all').style.background = (mode === 'all') ? 'var(--box-border)' : 'rgba(255,255,255,0.1)'; document.getElementById('mode-all').style.color = (mode === 'all') ? 'black' : 'white'; renderView(); }
-    function setCategoryFilter(tag, btn) { activeTag = tag; document.querySelectorAll('.category-bar .filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderView(); }
+    
+    function setCategoryFilter(tag, btn) {
+        if (tag === 'All') {
+            activeTags = [];
+            document.querySelectorAll('.category-bar .filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        } else {
+            // ลบสถานะ All ออกก่อน
+            document.querySelector('.category-bar .filter-btn[data-tag="All"]').classList.remove('active');
+            
+            if (activeTags.includes(tag)) {
+                activeTags = activeTags.filter(t => t !== tag);
+                btn.classList.remove('active');
+            } else {
+                activeTags.push(tag);
+                btn.classList.add('active');
+            }
+            
+            // ถ้าไม่เหลือที่เลือกเลย ให้กลับไป All
+            if (activeTags.length === 0) {
+                document.querySelector('.category-bar .filter-btn[data-tag="All"]').classList.add('active');
+            }
+        }
+        renderView();
+    }
+
     function copyCharLink(name) { const url = new URL(window.location.href); url.searchParams.set('c', name); navigator.clipboard.writeText(url.toString()).then(() => alert('คัดลอกลิงก์ตัวละครเรียบร้อยแล้ว!')); }
 
     function openPopDetails(char) {
@@ -574,9 +635,11 @@
         const renderMasonry = (images) => {
             if (images.length === 0) return '';
             let cols = ['', '', '', ''];
+            const isMobile = window.innerWidth < 768;
             images.forEach((img, i) => {
                 let fullIdx = currentGalleryImages.indexOf(img);
-                cols[i % 4] += `<div class="gallery-item" onclick="openLightbox(${fullIdx})">
+                let colIdx = isMobile ? (i % 2) : (i % 4);
+                cols[colIdx] += `<div class="gallery-item" onclick="openLightbox(${fullIdx})">
                                     <button class="admin-mini-btn img-edit-btn" onclick="event.stopPropagation(); openImageEditModal(${fullIdx})">edit</button>
                                     <img src="https://lh3.googleusercontent.com/u/0/d/${img.url}" loading="lazy"><div class="watermark-tile"></div>
                                 </div>`;
@@ -687,9 +750,16 @@
         currentImageIndex = idx; const img = currentGalleryImages[idx], char = currentlyViewedChar;
         const target = document.getElementById('lightbox-img-target'), artN = document.getElementById('lb-artist-name'), useT = document.getElementById('lb-usage-text'), bar = document.getElementById('lb-info-bar');
         target.src = `https://lh3.googleusercontent.com/u/0/d/${img.url}`;
-        let aV = img.artist || char.artist, aL = img.artistLink || char.artistLink, uV = img.usage || char.designUsage;
-        if (aV) { artN.innerHTML = aL ? `<a href="${aL}" target="_blank">${aV}</a>` : aV; artN.parentElement.style.display = 'block'; } else artN.parentElement.style.display = 'none';
-        if (uV) { useT.innerText = uV; useT.parentElement.style.display = 'block'; } else useT.parentElement.style.display = 'none';
+        
+        // แยกเครดิตชัดเจน: รูปในแกลเลอรีใช้เฉพาะเครดิตในแกลเลอรีเท่านั้น ไม่ดึงของนักออกแบบมาปน
+        let aV = img.artist, aL = img.artistLink, uV = img.usage;
+        
+        if (aV) { artN.innerHTML = aL ? `<a href="${aL}" target="_blank">${aV}</a>` : aV; artN.parentElement.style.display = 'block'; } 
+        else { artN.parentElement.style.display = 'none'; }
+        
+        if (uV) { useT.innerText = uV; useT.parentElement.style.display = 'block'; } 
+        else { useT.parentElement.style.display = 'none'; }
+        
         bar.style.display = (!aV && !uV) ? 'none' : 'flex';
         document.body.classList.add('lb-open'); document.getElementById('lightbox-modal').style.display = 'flex'; document.getElementById('lightbox-modal').scrollTop = 0;
     }
@@ -708,7 +778,14 @@
     function saveSoloBio() { currentlyViewedChar.bio = document.getElementById('solo-bio-input').value.trim(); syncData(); alert("Saved bio!"); showSoloViewActual(); }
     function closeSoloView() { document.getElementById('page-char-solo').style.display = 'none'; document.getElementById('char-main-list').style.display = 'block'; renderView(); }
 
-    function openProfileMgmt() { document.getElementById('p-mgmt-name').value = rootData.profile.name; document.getElementById('p-mgmt-bio').value = rootData.profile.bio; document.getElementById('p-mgmt-pfp').value = rootData.profile.pfp; document.getElementById('p-mgmt-frame').value = rootData.profile.frame; document.getElementById('profile-mgmt-modal').style.display = 'flex'; }
+    function openProfileMgmt() { 
+        document.getElementById('p-mgmt-name').value = rootData.profile.name; 
+        document.getElementById('p-mgmt-bio').value = rootData.profile.bio; 
+        // ถ้าเป็น Base64 ให้แสดงช่องว่าง
+        document.getElementById('p-mgmt-pfp').value = rootData.profile.pfp.startsWith('data:') ? "" : rootData.profile.pfp; 
+        document.getElementById('p-mgmt-frame').value = rootData.profile.frame.startsWith('data:') ? "" : rootData.profile.frame; 
+        document.getElementById('profile-mgmt-modal').style.display = 'flex'; 
+    }
     function saveProfileMgmt() { rootData.profile.name = document.getElementById('p-mgmt-name').value.trim() || "Dominic"; rootData.profile.bio = document.getElementById('p-mgmt-bio').value.trim(); rootData.profile.pfp = document.getElementById('p-mgmt-pfp').value.trim() || NEW_DEFAULT_IMG; rootData.profile.frame = document.getElementById('p-mgmt-frame').value.trim() || ROSE_FRAME_ID; document.getElementById('profile-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
     function openFolderMgmt(idx) { folderEditIdx = idx; if (idx === -1) { document.getElementById('mgmt-name-input').value = ""; document.getElementById('mgmt-img-input').value = ""; document.getElementById('mgmt-display-style').value = "normal"; } else { const f = getCurrentFolder().subFolders[idx]; document.getElementById('mgmt-name-input').value = f.name; document.getElementById('mgmt-img-input').value = f.coverImg || ""; document.getElementById('mgmt-display-style').value = f.displayStyle || "normal"; } document.getElementById('folder-mgmt-modal').style.display = 'flex'; }
     function saveFolderMgmt() { const n = document.getElementById('mgmt-name-input').value.trim(), i = document.getElementById('mgmt-img-input').value.trim(), d = document.getElementById('mgmt-display-style').value, cur = getCurrentFolder(); if (!n) return; if (folderEditIdx === -1) cur.subFolders.push({ name: n, coverImg: i, displayStyle: d, subFolders: [], characters: [], description: "" }); else { let f = cur.subFolders[folderEditIdx]; f.name = n; f.coverImg = i; f.displayStyle = d; } document.getElementById('folder-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
@@ -721,16 +798,22 @@
         charEditIdx = idx; const select = document.getElementById('c-mgmt-folder'); select.innerHTML = ''; const options = []; getFolderOptions(rootData, [], options);
         options.forEach(o => { const el = document.createElement('option'); el.value = JSON.stringify(o.path); el.innerText = o.name + (o.path.length === 0 ? " (Root)" : ""); if (JSON.stringify(o.path) === JSON.stringify(currentPath)) el.selected = true; select.appendChild(el); });
         const tagL = document.getElementById('c-mgmt-tag-list'); tagL.innerHTML = ''; let curTags = [];
-        if (idx !== -1) { const c = getCurrentFolder().characters[idx]; curTags = Array.isArray(c.tags) ? c.tags : [c.tag]; document.getElementById('c-mgmt-name').value = c.name; document.getElementById('c-mgmt-img').value = c.img; document.getElementById('c-mgmt-frame').value = c.frame || ""; document.getElementById('c-mgmt-cw').checked = c.isCW || false; document.getElementById('c-mgmt-secondary-img').value = c.secondaryImg || ""; }
-        else { document.getElementById('c-mgmt-name').value = ""; document.getElementById('c-mgmt-img').value = NEW_DEFAULT_IMG; document.getElementById('c-mgmt-frame').value = ""; document.getElementById('c-mgmt-cw').checked = false; document.getElementById('c-mgmt-secondary-img').value = ""; }
+        if (idx !== -1) { 
+            const c = getCurrentFolder().characters[idx]; curTags = Array.isArray(c.tags) ? c.tags : [c.tag]; document.getElementById('c-mgmt-name').value = c.name; 
+            document.getElementById('c-mgmt-img').value = c.img.startsWith('data:') ? "" : c.img; 
+            document.getElementById('c-mgmt-frame').value = c.frame.startsWith('data:') ? "" : c.frame; 
+            document.getElementById('c-mgmt-cw').checked = c.isCW || false; document.getElementById('c-mgmt-secondary-img').value = c.secondaryImg || ""; 
+        } else { 
+            document.getElementById('c-mgmt-name').value = ""; document.getElementById('c-mgmt-img').value = ""; document.getElementById('c-mgmt-frame').value = ""; document.getElementById('c-mgmt-cw').checked = false; document.getElementById('c-mgmt-secondary-img').value = ""; 
+        }
         toggleCWSecondaryInput();
         TAG_OPTIONS.forEach(t => { const d = document.createElement('label'); d.className = 'mgmt-tag-item'; d.innerHTML = `<input type="checkbox" name="char-tag-cb" value="${t}" ${curTags.includes(t) ? 'checked' : ''}> ${t}`; tagL.appendChild(d); });
         document.getElementById('char-mgmt-modal').style.display = 'flex';
     }
 
     function saveCharMgmt() {
-        const n = document.getElementById('c-mgmt-name').value.trim(), i = document.getElementById('c-mgmt-img').value.trim(), f = document.getElementById('c-mgmt-frame').value.trim(), isCW = document.getElementById('c-mgmt-cw').checked, si = document.getElementById('c-mgmt-secondary-img').value.trim(), targetP = JSON.parse(document.getElementById('c-mgmt-folder').value || "[]"), tags = Array.from(document.querySelectorAll('input[name="char-tag-cb"]:checked')).map(x => x.value);
-        if (!n || !i) return alert("ใส่ชื่อและไอดีรูป");
+        const n = document.getElementById('c-mgmt-name').value.trim(), i = document.getElementById('c-mgmt-img').value.trim() || NEW_DEFAULT_IMG, f = document.getElementById('c-mgmt-frame').value.trim() || ROSE_FRAME_ID, isCW = document.getElementById('c-mgmt-cw').checked, si = document.getElementById('c-mgmt-secondary-img').value.trim(), targetP = JSON.parse(document.getElementById('c-mgmt-folder').value || "[]"), tags = Array.from(document.querySelectorAll('input[name="char-tag-cb"]:checked')).map(x => x.value);
+        if (!n) return alert("ใส่ชื่อตัวละคร");
         let targetF = rootData; for (let idx of targetP) targetF = targetF.subFolders[idx];
         const currentF = getCurrentFolder(); let charO = (charEditIdx === -1) ? { artist: "", bio: "", artistLink: "", rulesImg: "", designValue: "", designUsage: "Personal", basicInfo: [], gallery: [], galleryFolders: [] } : currentF.characters[charEditIdx];
         charO.name = n; charO.img = i; charO.frame = f; charO.tags = tags; charO.tag = tags[0] || 'mascot'; charO.isCW = isCW; charO.secondaryImg = si;
@@ -744,11 +827,25 @@
     function deleteChar(i) { if(confirm("ลบตัวละครนี้?")) { getCurrentFolder().characters.splice(i, 1); syncData(); renderView(); } }
     async function syncData() { await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "saveCharacterFolders", folderData: JSON.stringify(rootData), adminPass: adminPassInBase }) }); }
 
+    function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    window.addEventListener('scroll', () => { document.getElementById('scrollTopBtn').style.display = (window.scrollY > 300) ? 'flex' : 'none'; });
+
     const canvas = document.getElementById('snow-canvas'), ctx = canvas.getContext('2d'); let flakes = [];
     function initSnow() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; flakes = []; for(let i=0; i<50; i++) flakes.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, radius: Math.random()*2+1, speed: Math.random()*1+0.5, wind: Math.random()*0.5-0.25 }); }
     function drawSnow() { ctx.clearRect(0,0,canvas.width,canvas.height); flakes.forEach(f => { ctx.beginPath(); ctx.arc(f.x,f.y,f.radius,0,Math.PI*2); ctx.fillStyle="white"; ctx.shadowBlur=8; ctx.shadowColor="#D3BCE6"; ctx.fill(); f.y+=f.speed; f.x+=f.wind; if (f.y > canvas.height) { f.y=-5; f.x=Math.random()*canvas.width; } }); requestAnimationFrame(drawSnow); }
     window.addEventListener('resize', initSnow); initSnow(); drawSnow();
-    window.addEventListener('mousedown', (e) => { const r = document.createElement('div'); r.className='ripple'; r.style.left=e.clientX+'px'; r.style.top=e.clientY+'px'; document.body.appendChild(r); r.addEventListener('animationend',()=>r.remove()); });
+    
+    // เอฟเฟกต์กดที่ติดทุกตำแหน่ง
+    window.addEventListener('mousedown', (e) => { 
+        const r = document.createElement('div'); 
+        r.className='ripple'; 
+        // ปรับตำแหน่งให้ตรงกับจุดที่คลิกจริงๆ
+        r.style.left = (e.clientX + window.scrollX) + 'px';
+        r.style.top = (e.clientY + window.scrollY) + 'px';
+        document.body.appendChild(r); 
+        r.addEventListener('animationend',()=>r.remove()); 
+    });
+    
     loadData();
 </script>
 </body>
