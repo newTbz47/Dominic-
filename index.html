@@ -183,8 +183,8 @@
 
             <div class="owner-profile-wrap">
                 <div class="owner-pfp-frame">
-                    <img class="owner-frame-img" id="owner-frame-display" src="https://lh3.googleusercontent.com/u/0/d/17RZqgplDGeyl_tMm80a-oiB3EPKPzvuv">
-                    <img class="owner-pfp-img" id="owner-pfp-display" src="https://lh3.googleusercontent.com/u/0/d/17RZqgplDGeyl_tMm80a-oiB3EPKPzvuv">
+                    <img class="owner-frame-img" id="owner-frame-display" src="">
+                    <img class="owner-pfp-img" id="owner-pfp-display" src="">
                 </div>
                 <div class="owner-info">
                     <h2 id="owner-name-display">Dominic</h2>
@@ -430,11 +430,13 @@
     const DEFAULT_FOLDER_ICON = "https://cdn-icons-png.flaticon.com/512/716/716784.png";
     const TAG_OPTIONS = ['mascot', 'forever home', 'yume', 'eo', 'sp', 'ota', 'freebie'];
     const ICON_COPY = "https://lh3.googleusercontent.com/u/0/d/1YuawN-quG1Nq1AvRr8O1VjTnfihirqQw";
-    const NEW_DEFAULT_IMG = "17RZqgplDGeyl_tMm80a-oiB3EPKPzvuv";
+    // เปลี่ยนค่าเริ่มต้นเป็นรูปใส เพื่อป้องกันการเห็นรูปกรอบซ้อนตอนโหลด
+    const NEW_DEFAULT_IMG = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    const ROSE_FRAME_ID = "17RZqgplDGeyl_tMm80a-oiB3EPKPzvuv";
 
     let rootData = { 
         name: "home", subFolders: [], characters: [], description: "",
-        profile: { name: "Dominic", bio: "welcome to my character folders ♡", pfp: NEW_DEFAULT_IMG, frame: NEW_DEFAULT_IMG }
+        profile: { name: "Dominic", bio: "welcome to my character folders ♡", pfp: NEW_DEFAULT_IMG, frame: ROSE_FRAME_ID }
     };
     let currentPath = [], viewMode = 'folder', activeTag = 'All', isAdmin = false, adminPassInBase = "1234", folderEditIdx = -1, charEditIdx = -1, termsAccepted = false, currentlyViewedChar = null, pendingCWChar = null, currentGalleryImages = [], currentImageIndex = 0;
     let imageEditIdx = -1; // สำหรับติดตามว่ากำลังแก้ไขรูป index ไหน
@@ -453,16 +455,16 @@
                 const parsed = JSON.parse(d.folderData);
                 rootData = {...rootData, ...parsed};
                 if (!rootData.profile.pfp || rootData.profile.pfp === "" || rootData.profile.pfp === "114MIoDzBDg13gvtV9ZzuUX4W9O1igmB1") rootData.profile.pfp = NEW_DEFAULT_IMG;
-                if (!rootData.profile.frame || rootData.profile.frame === "" || rootData.profile.frame === "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC") rootData.profile.frame = NEW_DEFAULT_IMG;
+                if (!rootData.profile.frame || rootData.profile.frame === "" || rootData.profile.frame === "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC") rootData.profile.frame = ROSE_FRAME_ID;
                 const migrateData = (folder) => {
                     folder.characters.forEach(c => {
                         if (!c.img || c.img === "114MIoDzBDg13gvtV9ZzuUX4W9O1igmB1") c.img = NEW_DEFAULT_IMG;
-                        if (!c.frame || c.frame === "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC") c.frame = NEW_DEFAULT_IMG;
+                        if (!c.frame || c.frame === "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC") c.frame = ROSE_FRAME_ID;
                     });
                     folder.subFolders.forEach(migrateData);
                 };
                 migrateData(rootData);
-                if (!rootData.profile) rootData.profile = { name: "Dominic", bio: "welcome", pfp: NEW_DEFAULT_IMG, frame: NEW_DEFAULT_IMG };
+                if (!rootData.profile) rootData.profile = { name: "Dominic", bio: "welcome", pfp: NEW_DEFAULT_IMG, frame: ROSE_FRAME_ID };
             }
             adminPassInBase = (d.adminPass || "1234").toString();
             const urlParams = new URLSearchParams(window.location.search), cName = urlParams.get('c');
@@ -488,7 +490,7 @@
         const folder = getCurrentFolder();
         document.getElementById('owner-name-display').innerText = rootData.profile.name;
         document.getElementById('owner-bio-display').innerText = rootData.profile.bio;
-        document.getElementById('owner-pfp-display').src = `https://lh3.googleusercontent.com/u/0/d/${rootData.profile.pfp}`;
+        document.getElementById('owner-pfp-display').src = rootData.profile.pfp.startsWith('data:') ? rootData.profile.pfp : `https://lh3.googleusercontent.com/u/0/d/${rootData.profile.pfp}`;
         document.getElementById('owner-frame-display').src = `https://lh3.googleusercontent.com/u/0/d/${rootData.profile.frame}`;
         document.getElementById('edit-profile-btn').style.display = isAdmin ? 'block' : 'none';
         renderBreadcrumbs();
@@ -532,7 +534,7 @@
         chars.forEach((char, idx) => {
             const card = document.createElement('div'); card.className = 'char-card';
             let adminHtml = isAdmin ? `<div style="margin-top:5px"><span class="admin-mini-btn" onclick="openCharMgmt(${idx})">แก้ไข</span><span class="admin-mini-btn" style="color:red" onclick="deleteChar(${idx})">ลบ</span></div>` : "";
-            card.innerHTML = `<div class="char-frame-wrap" onclick="openPopDetails(${JSON.stringify(char).replace(/"/g, '&quot;')})"><img class="char-frame-img" src="${char.frame ? `https://lh3.googleusercontent.com/u/0/d/${char.frame}` : FRAME_IMG}"><img class="char-thumb" src="https://lh3.googleusercontent.com/u/0/d/${char.img}" loading="lazy"></div><div class="char-name-label">${char.name}</div>${adminHtml}`;
+            card.innerHTML = `<div class="char-frame-wrap" onclick="openPopDetails(${JSON.stringify(char).replace(/"/g, '&quot;')})"><img class="char-frame-img" src="${char.frame ? `https://lh3.googleusercontent.com/u/0/d/${char.frame}` : FRAME_IMG}"><img class="char-thumb" src="${char.img.startsWith('data:') ? char.img : `https://lh3.googleusercontent.com/u/0/d/${char.img}`}" loading="lazy"></div><div class="char-name-label">${char.name}</div>${adminHtml}`;
             cols.reduce((p, c) => p.childElementCount <= c.childElementCount ? p : c).appendChild(card);
         });
     }
@@ -590,7 +592,7 @@
             <div class="solo-layout">
                 <div class="solo-top-area">
                     <div class="solo-profile-box">
-                        <div class="owner-pfp-frame"><img class="owner-frame-img" src="${char.frame ? `https://lh3.googleusercontent.com/u/0/d/${char.frame}` : FRAME_IMG}"><img class="owner-pfp-img" src="https://lh3.googleusercontent.com/u/0/d/${(char.isCW && char.secondaryImg) ? char.secondaryImg : char.img}"></div>
+                        <div class="owner-pfp-frame"><img class="owner-frame-img" src="${char.frame ? `https://lh3.googleusercontent.com/u/0/d/${char.frame}` : FRAME_IMG}"><img class="owner-pfp-img" src="${(char.isCW && char.secondaryImg) ? (char.secondaryImg.startsWith('data:') ? char.secondaryImg : `https://lh3.googleusercontent.com/u/0/d/${char.secondaryImg}`) : (char.img.startsWith('data:') ? char.img : `https://lh3.googleusercontent.com/u/0/d/${char.img}`)}"></div>
                         <div>
                             <div style="font-size:32px; font-weight:700;">${char.name}</div>
                             <div style="display:flex; align-items:center;"><button class="btn-rules" onclick="showDesignRules('${char.rulesImg || ''}')">กฎการใช้งานดีไซน์</button><img src="${ICON_COPY}" class="btn-copy-link" onclick="copyCharLink('${char.name.replace(/'/g, "\\'")}')">${isAdmin ? `<button class="admin-mini-btn" style="margin-left:5px" onclick="openRulesIdMgmt()">edit rules id</button>` : ''}</div>
@@ -707,7 +709,7 @@
     function closeSoloView() { document.getElementById('page-char-solo').style.display = 'none'; document.getElementById('char-main-list').style.display = 'block'; renderView(); }
 
     function openProfileMgmt() { document.getElementById('p-mgmt-name').value = rootData.profile.name; document.getElementById('p-mgmt-bio').value = rootData.profile.bio; document.getElementById('p-mgmt-pfp').value = rootData.profile.pfp; document.getElementById('p-mgmt-frame').value = rootData.profile.frame; document.getElementById('profile-mgmt-modal').style.display = 'flex'; }
-    function saveProfileMgmt() { rootData.profile.name = document.getElementById('p-mgmt-name').value.trim() || "Dominic"; rootData.profile.bio = document.getElementById('p-mgmt-bio').value.trim(); rootData.profile.pfp = document.getElementById('p-mgmt-pfp').value.trim() || NEW_DEFAULT_IMG; rootData.profile.frame = document.getElementById('p-mgmt-frame').value.trim() || NEW_DEFAULT_IMG; document.getElementById('profile-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
+    function saveProfileMgmt() { rootData.profile.name = document.getElementById('p-mgmt-name').value.trim() || "Dominic"; rootData.profile.bio = document.getElementById('p-mgmt-bio').value.trim(); rootData.profile.pfp = document.getElementById('p-mgmt-pfp').value.trim() || NEW_DEFAULT_IMG; rootData.profile.frame = document.getElementById('p-mgmt-frame').value.trim() || ROSE_FRAME_ID; document.getElementById('profile-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
     function openFolderMgmt(idx) { folderEditIdx = idx; if (idx === -1) { document.getElementById('mgmt-name-input').value = ""; document.getElementById('mgmt-img-input').value = ""; document.getElementById('mgmt-display-style').value = "normal"; } else { const f = getCurrentFolder().subFolders[idx]; document.getElementById('mgmt-name-input').value = f.name; document.getElementById('mgmt-img-input').value = f.coverImg || ""; document.getElementById('mgmt-display-style').value = f.displayStyle || "normal"; } document.getElementById('folder-mgmt-modal').style.display = 'flex'; }
     function saveFolderMgmt() { const n = document.getElementById('mgmt-name-input').value.trim(), i = document.getElementById('mgmt-img-input').value.trim(), d = document.getElementById('mgmt-display-style').value, cur = getCurrentFolder(); if (!n) return; if (folderEditIdx === -1) cur.subFolders.push({ name: n, coverImg: i, displayStyle: d, subFolders: [], characters: [], description: "" }); else { let f = cur.subFolders[folderEditIdx]; f.name = n; f.coverImg = i; f.displayStyle = d; } document.getElementById('folder-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
     function openDescMgmt() { document.getElementById('mgmt-desc-input').value = getCurrentFolder().description || ""; document.getElementById('desc-mgmt-modal').style.display = 'flex'; }
