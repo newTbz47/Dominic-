@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=768, user-scalable=no">
+    <title>Dominic - Character Folders</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --header-pink: #D8A7C9;
+            --bg-bottom: #9073A0;
+            --box-border: #D3BCE6;
+            --box-grad: linear-gradient(180deg, #000000 0%, #35233D 70%, #D3BCE6 100%);
+            --glow-soft: 0 0 10px rgba(211, 188, 230, 0.5);
+        }
+
+        * { box-sizing: border-box; font-family: 'Mali', sans-serif; -webkit-user-select: none; user-select: none; }
+        input, textarea, select { -webkit-user-select: text !important; user-select: text !important; }
+
+        body {
+            margin: 0; padding: 0;
+            background: linear-gradient(180deg, #000000 0%, #000000 50%, var(--bg-bottom) 100%) fixed;
+            display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden;
+            text-transform: lowercase;
+        }
+
+        /* --- ป้องกันรูปภาพ --- */
+        img { -webkit-touch-callout: none !important; -webkit-user-drag: none !important; user-drag: none !important; pointer-events: none !important; }
+        .img-del-btn-float, .img-edit-btn, .admin-btn, .login-btn, .char-btn-ui, .save-btn, .modal-close, .lb-nav, .lb-close, .filter-btn, .accept-btn, .breadcrumb-item, .folder-item, .char-frame-wrap, .back-arrow, .lightbox-overlay, .cw-btn {
+            pointer-events: auto !important;
+        }
+        body.is-admin-active * { -webkit-user-select: auto !important; user-select: auto !important; }
+        body.is-admin-active img { pointer-events: auto !important; -webkit-user-drag: auto !important; }
+
+        .watermark-tile {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('https://lh3.googleusercontent.com/u/0/d/1A9qge8o-smc6LfSQPiuAqtGocnjR5tPY');
+            background-repeat: repeat; background-size: 25px; 
+            pointer-events: all !important; z-index: 10; opacity: 0.6;
+        }
+        body.is-admin-active .watermark-tile { display: none !important; }
+
+        .ipad-layout { width: 768px; position: relative; display: flex; flex-direction: column; z-index: 1; }
+        .page-container { padding: 40px 60px 100px 60px; display: flex; flex-direction: column; width: 100%; }
+
+        /* --- Profile Section --- */
+        .owner-profile-wrap { display: flex; align-items: center; gap: 25px; margin-bottom: 30px; background: rgba(0,0,0,0.3); padding: 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); position: relative; }
+        .owner-pfp-frame { width: 130px; height: 130px; position: relative; flex-shrink: 0; }
+        .owner-frame-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+        .owner-pfp-img { width: 88%; height: 88%; margin: 6%; object-fit: cover; border-radius: 2px; }
+        .owner-info h2 { margin: 0; font-size: 28px; color: white; }
+        .owner-info p { margin: 5px 0 0 0; font-size: 15px; color: var(--box-border); }
+
+        .breadcrumb-container { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 14px; color: var(--box-border); flex-wrap: wrap; }
+        .breadcrumb-item { cursor: pointer; text-decoration: underline; color: var(--box-border); font-weight: bold; }
+
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1.5px solid rgba(255,255,255,0.2); padding-bottom: 15px; }
+        
+        .category-bar { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-btn { background: rgba(0,0,0,0.5); border: 1.5px dashed var(--box-border); color: white; padding: 5px 18px; border-radius: 20px; cursor: pointer; font-size: 12px; }
+        .filter-btn.active { background: var(--box-border); color: #000; border-style: solid; font-weight: bold; }
+
+        /* --- Back Arrow & Description --- */
+        .back-nav-row { display: none; margin-bottom: 15px; align-items: center; }
+        .back-arrow { font-size: 24px; color: white; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold; }
+        .folder-description-area { color: white; font-size: 14px; line-height: 1.6; margin-bottom: 30px; padding: 0 10px; white-space: pre-wrap; word-break: break-word; }
+
+        /* --- Folder & Char Grid (4 Columns) --- */
+        .folder-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .folder-item { background: transparent; border: none; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.2s; position: relative; }
+        .folder-item:hover { transform: scale(1.03); }
+        .folder-icon { width: 100%; height: auto; display: block; }
+        .folder-name { font-size: 13px; text-align: center; color: white; margin-top: 8px; font-weight: 500; }
+
+        .char-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .display-col { display: flex; flex-direction: column; gap: 15px; }
+        .char-card { width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; }
+        .char-frame-wrap { position: relative; width: 100%; cursor: pointer; line-height: 0; }
+        .char-frame-img { position: absolute; width: 100%; height: 100%; z-index: 2; }
+        .char-thumb { width: 88%; margin: 6%; position: relative; z-index: 1; border-radius: 2px; }
+        .char-name-label { margin-top: 5px; color: white; font-size: 16px; text-align: center; }
+
+        /* --- Modals --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; justify-content: center; align-items: center; }
+        .modal-content { background: var(--box-grad); border: 2px solid var(--box-border); border-radius: 4px; width: 600px; max-height: 90vh; overflow-y: auto; padding: 40px; color: white; position: relative; }
+        .modal-close { position: absolute; top: 10px; right: 15px; font-size: 28px; cursor: pointer; }
+        .char-btn-ui { background: rgba(255,255,255,0.1); border: 1px solid white; padding: 6px 18px; border-radius: 20px; color: white; cursor: pointer; font-size: 11px; display: inline-block; }
+        .admin-mini-btn { font-size: 10px; padding: 2px 8px; background: rgba(0,0,0,0.6); border: 1px solid #666; border-radius: 4px; color: #fff; cursor: pointer; margin-bottom: 2px; }
+
+        .mgmt-input-row { margin-bottom: 15px; }
+        .mgmt-label { display: block; font-size: 14px; margin-bottom: 8px; color: var(--box-border); }
+        .mgmt-input, .mgmt-select, .mgmt-textarea { width: 100%; padding: 12px; background: #111; border: 1.5px solid var(--box-border); color: white; border-radius: 8px; font-size: 14px; }
+        .mgmt-textarea { height: 150px; resize: none; }
+
+        #page-char-terms { flex-direction: column; align-items: center; text-align: center; }
+        .accept-btn { padding: 15px 40px; background: white; font-size: 20px; font-weight: bold; border-radius: 5px; cursor: pointer; margin-top: 20px; color: #555; border:none; }
+
+        /* --- Solo View (Toyhouse Style - Clean) --- */
+        #page-char-solo { display: none; flex-direction: column; width: 100%; }
+        .solo-top-area { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 25px; gap: 20px; }
+        .solo-profile-box { display: flex; align-items: center; gap: 20px; }
+        .solo-credit-card { background: rgba(255,255,255,0.05); border: 1px solid var(--box-border); padding: 12px 18px; border-radius: 10px; font-size: 13px; text-align: right; min-width: 180px; }
+        .solo-credit-card a { color: var(--box-border); text-decoration: underline; pointer-events: auto; }
+        
+        .solo-layout { display: flex; flex-direction: column; color: white; padding: 0 10px; }
+        .solo-main-content { width: 100%; }
+        .solo-section { margin-bottom: 25px; }
+        .solo-section-title { font-size: 18px; font-weight: 700; border-bottom: 1.5px solid rgba(255,255,255,0.2); padding-bottom: 5px; margin-bottom: 10px; color: var(--box-border); }
+        .solo-text { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+
+        /* --- Tag Checkboxes --- */
+        .mgmt-tag-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #111; padding: 10px; border-radius: 8px; border: 1px solid var(--box-border); }
+        .mgmt-tag-item { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+        .mgmt-tag-item input { width: auto; }
+
+        /* Tag Solo View Styles */
+        .solo-tag-pill {
+            display: inline-block !important;
+            font-size: 10px !important;
+            padding: 2px 10px !important;
+            border: 1px dashed var(--box-border) !important;
+            border-radius: 15px !important;
+            color: var(--box-border) !important;
+            margin-right: 6px !important;
+            margin-top: 6px !important;
+            text-transform: uppercase !important;
+            background: transparent !important;
+        }
+        .btn-rules {
+            margin-top: 5px;
+            font-size: 10px;
+            padding: 2px 10px;
+            border: 1.5px solid var(--box-border);
+            border-radius: 20px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* --- Copy Link Button Styles --- */
+        .btn-copy-link {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            vertical-align: middle;
+            margin-left: 8px;
+            margin-top: 5px;
+            transition: transform 0.2s;
+            pointer-events: auto !important;
+        }
+        .btn-copy-link:hover { transform: scale(1.1); }
+
+        /* Gallery Styles */
+        .gallery-folder-container { margin-bottom: 20px; }
+        .gallery-folder-title { font-size: 15px; font-weight: bold; color: var(--box-border); margin-bottom: 10px; border-left: 3px solid var(--box-border); padding-left: 10px; }
+        .solo-gallery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .gallery-item { position: relative; width: 100%; cursor: pointer; }
+
+        /* Content Warning Overlay */
+        #cw-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; padding: 20px; }
+        .cw-box { max-width: 500px; border: 2px solid #ff4444; padding: 40px; border-radius: 10px; }
+        .cw-btn { padding: 10px 30px; margin: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; border:none; }
+
+        /* --- Lightbox --- */
+        .lightbox-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 5000; display: none; justify-content: center; align-items: center; cursor: zoom-out; }
+        .lightbox-container { position: relative; max-width: 90%; max-height: 90%; pointer-events: none; }
+        .lightbox-img { max-width: 100%; max-height: 100vh; display: block; -webkit-user-select: none; user-select: none; pointer-events: none; }
+        .lb-nav { position: absolute; top: 50%; width: 40px; height: 40px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transform: translateY(-50%); pointer-events: auto !important; }
+        .lb-prev { left: -60px; }
+        .lb-next { right: -60px; }
+
+        /* --- Basic Info Styles --- */
+        .basic-info-list { list-style: none; padding: 0; margin: 0 0 20px 0; display: flex; flex-direction: column; gap: 8px; }
+        .basic-info-item { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; font-size: 14px; }
+        .basic-info-key { width: 120px; font-weight: bold; color: var(--box-border); }
+        .basic-info-val { flex: 1; color: white; }
+
+        /* --- Snow Effect --- */
+        #snow-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: -1;
+        }
+
+        /* --- Ripple Effect --- */
+        .ripple {
+            position: fixed;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            animation: ripple-out 0.6s ease-out forwards;
+            z-index: 9999;
+        }
+        @keyframes ripple-out {
+            from { width: 0; height: 0; opacity: 0.8; }
+            to { width: 150px; height: 150px; opacity: 0; }
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<canvas id="snow-canvas"></canvas>
+
+<!-- CW Overlay -->
+<div id="cw-overlay">
+    <div class="cw-box">
+        <h2 style="color:#ff4444;">CONTENT WARNING</h2>
+        <p>ตัวละครนี้อาจมีเนื้อหาหรือภาพที่ทำให้ไม่สบายใจ<br>คุณต้องการที่จะรับชมต่อหรือไม่?</p>
+        <button class="cw-btn" style="background:#ff4444; color:white;" onclick="confirmCW()">ยืนยันที่จะรับชม</button>
+        <button class="cw-btn" style="background:#444; color:white;" onclick="cancelCW()">ย้อนกลับ</button>
+    </div>
+</div>
+
+<div class="ipad-layout">
+    <div class="page-container">
+        
+        <div id="page-char-terms">
+            <img src="https://lh3.googleusercontent.com/u/0/d/1O5Q2VdTozcIu1kHxwPYRRUbKJg09IJk_" style="width: 100%; height: auto;">
+            <button class="accept-btn" onclick="acceptTerms()">ยอมรับข้อตกลงและเข้าชม</button>
+        </div>
+
+        <div id="char-main-list" style="display:none;">
+            <div class="login-btn" onclick="triggerAdminLogin()" id="login-btn" style="align-self: flex-end; padding: 5px 15px; color: white; border: 1.5px solid var(--box-border); border-radius: 20px; cursor: pointer; font-size: 11px; margin-bottom: 10px; width: fit-content; margin-left: auto;">log in</div>
+
+            <div class="owner-profile-wrap">
+                <div class="owner-pfp-frame">
+                    <img class="owner-frame-img" id="owner-frame-display" src="https://lh3.googleusercontent.com/u/0/d/1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC">
+                    <img class="owner-pfp-img" id="owner-pfp-display" src="https://lh3.googleusercontent.com/u/0/d/1SuwqVv1aEXGDvSmESqPYSAlihq74IvNQ">
+                </div>
+                <div class="owner-info">
+                    <h2 id="owner-name-display">Dominic</h2>
+                    <p id="owner-bio-display">welcome to my character folders ♡</p>
+                    <button class="admin-mini-btn" id="edit-profile-btn" style="display:none; margin-top:8px;" onclick="openProfileMgmt()">edit profile</button>
+                </div>
+            </div>
+
+            <div class="breadcrumb-container" id="breadcrumbs"></div>
+
+            <div class="toolbar">
+                <div class="view-toggle">
+                    <div class="char-btn-ui" style="background:var(--box-border); color:black; font-weight:bold;" id="mode-folder" onclick="setViewMode('folder')">folder view</div>
+                    <div class="char-btn-ui" id="mode-all" onclick="setViewMode('all')">all characters</div>
+                </div>
+                <div id="admin-controls" style="display: none; gap: 8px;">
+                    <button class="char-btn-ui" id="edit-desc-btn" onclick="openDescMgmt()" style="display:none; border-color: #ffcc00; color: #ffcc00;">edit text</button>
+                    <button class="char-btn-ui" onclick="openFolderMgmt(-1)">+ folder</button>
+                    <button class="char-btn-ui" onclick="openCharMgmt(-1)">+ character</button>
+                </div>
+            </div>
+
+            <div class="category-bar">
+                <div class="filter-btn active" onclick="setCategoryFilter('All', this)">all</div>
+                <div class="filter-btn" onclick="setCategoryFilter('mascot', this)">mascot</div>
+                <div class="filter-btn" onclick="setCategoryFilter('forever home', this)">forever home</div>
+                <div class="filter-btn" onclick="setCategoryFilter('yume', this)">yume</div>
+                <div class="filter-btn" onclick="setCategoryFilter('eo', this)">eo</div>
+                <div class="filter-btn" onclick="setCategoryFilter('sp', this)">sp</div>
+                <div class="filter-btn" onclick="setCategoryFilter('ota', this)">ota</div>
+                <div class="filter-btn" onclick="setCategoryFilter('freebie', this)">freebie</div>
+            </div>
+
+            <div class="back-nav-row" id="back-nav-row">
+                <div class="back-arrow" onclick="goBack()">←</div>
+            </div>
+
+            <div class="folder-grid" id="folder-display"></div>
+            <div class="folder-description-area" id="folder-desc-display"></div>
+
+            <div class="char-grid">
+                <div class="display-col" id="char-col-1"></div>
+                <div class="display-col" id="char-col-2"></div>
+                <div class="display-col" id="char-col-3"></div>
+                <div class="display-col" id="char-col-4"></div>
+            </div>
+        </div>
+
+        <div id="page-char-solo">
+            <div class="back-arrow" onclick="closeSoloView()" style="margin-bottom:30px;">←</div>
+            <div id="solo-content-target"></div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Lightbox Modal -->
+<div id="lightbox-modal" class="lightbox-overlay" onclick="this.style.display='none'">
+    <div class="lightbox-container" onclick="event.stopPropagation()">
+        <button class="lb-nav lb-prev" onclick="changeLightboxImage(-1)">‹</button>
+        <img id="lightbox-img-target" class="lightbox-img" src="">
+        <div class="watermark-tile"></div>
+        <button class="lb-nav lb-next" onclick="changeLightboxImage(1)">›</button>
+    </div>
+</div>
+
+<!-- Modal: Profile Management -->
+<div id="profile-mgmt-modal" class="modal-overlay" onclick="this.style.display='none'">
+    <div class="modal-content" style="width: 450px;" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="document.getElementById('profile-mgmt-modal').style.display='none'">&times;</span>
+        <h3>แก้ไขโปรไฟล์</h3>
+        <div class="mgmt-input-row"><label class="mgmt-label">ชื่อ</label><input type="text" id="p-mgmt-name" class="mgmt-input"></div>
+        <div class="mgmt-input-row"><label class="mgmt-label">Bio</label><input type="text" id="p-mgmt-bio" class="mgmt-input"></div>
+        <div class="mgmt-input-row"><label class="mgmt-label">ไอดีรูปโปรไฟล์</label><input type="text" id="p-mgmt-pfp" class="mgmt-input"></div>
+        <div class="mgmt-input-row"><label class="mgmt-label">ไอดีรูปกรอบ</label><input type="text" id="p-mgmt-frame" class="mgmt-input"></div>
+        <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold;" onclick="saveProfileMgmt()">บันทึก</button>
+    </div>
+</div>
+
+<!-- Modal: Folder Text Management -->
+<div id="desc-mgmt-modal" class="modal-overlay" onclick="this.style.display='none'">
+    <div class="modal-content" style="width: 500px;" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="document.getElementById('desc-mgmt-modal').style.display='none'">&times;</span>
+        <h3>แก้ไขข้อความบรรยายโฟลเดอร์</h3>
+        <div class="mgmt-input-row">
+            <textarea id="mgmt-desc-input" class="mgmt-textarea" placeholder="เขียนข้อความบรรยายโฟลเดอร์ที่นี่..."></textarea>
+        </div>
+        <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold;" onclick="saveFolderDesc()">บันทึกข้อความ</button>
+    </div>
+</div>
+
+<!-- Modal: Folder Management -->
+<div id="folder-mgmt-modal" class="modal-overlay" onclick="this.style.display='none'">
+    <div class="modal-content" style="width: 450px;" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="document.getElementById('folder-mgmt-modal').style.display='none'">&times;</span>
+        <h3 id="mgmt-title">จัดการโฟลเดอร์</h3>
+        <div class="mgmt-input-row">
+            <label class="mgmt-label">ชื่อโฟลเดอร์</label>
+            <input type="text" id="mgmt-name-input" class="mgmt-input" placeholder="ระบุชื่อโฟลเดอร์...">
+        </div>
+        <div class="mgmt-input-row">
+            <label class="mgmt-label">ไอดีรูปปก (Drive ID)</label>
+            <input type="text" id="mgmt-img-input" class="mgmt-input" placeholder="วางไอดีรูปภาพ...">
+        </div>
+        <div class="mgmt-input-row">
+            <label class="mgmt-label">รูปแบบการแสดงผล</label>
+            <select id="mgmt-display-style" class="mgmt-select">
+                <option value="normal">โฟลเดอร์ปกติ (ต้องกดเข้าไปดู)</option>
+                <option value="flat">แบบโชว์เนื้อหา (แสดงตัวละครออกมาเลย)</option>
+            </select>
+        </div>
+        <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold;" onclick="saveFolderMgmt()">บันทึกโฟลเดอร์</button>
+    </div>
+</div>
+
+<!-- Modal: Character Management -->
+<div id="char-mgmt-modal" class="modal-overlay" onclick="this.style.display='none'">
+    <div class="modal-content" style="width: 450px;" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="document.getElementById('char-mgmt-modal').style.display='none'">&times;</span>
+        <h3>จัดการตัวละคร</h3>
+        <div class="mgmt-input-row"><label class="mgmt-label">ชื่อตัวละคร</label><input type="text" id="c-mgmt-name" class="mgmt-input"></div>
+        <div class="mgmt-input-row"><label class="mgmt-label">ไอดีรูปหลัก (หน้าปกโฟลเดอร์)</label><input type="text" id="c-mgmt-img" class="mgmt-input"></div>
+        <div class="mgmt-input-row"><label class="mgmt-label">ไอดีกรอบรูปตัวละคร (ทิ้งว่างเพื่อใช้กรอบเริ่มต้น)</label><input type="text" id="c-mgmt-frame" class="mgmt-input"></div>
+        <div class="mgmt-input-row">
+            <label class="mgmt-label">หมวดหมู่ (เลือกได้มากกว่า 1)</label>
+            <div class="mgmt-tag-grid" id="c-mgmt-tag-list"></div>
+        </div>
+        <div class="mgmt-input-row"><label class="mgmt-label">ย้ายไปโฟลเดอร์</label><select id="c-mgmt-folder" class="mgmt-select"></select></div>
+        
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 15px; padding-top: 15px;">
+            <label style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer;">
+                <input type="checkbox" id="c-mgmt-cw" onchange="toggleCWSecondaryInput()"> คำเตือนเนื้อหาไม่เหมาะสม (Content Warning)
+            </label>
+        </div>
+        <div id="c-mgmt-secondary-wrap" style="display:none; margin-top:10px;">
+            <label class="mgmt-label">ไอดีรูปรอง (แสดงในหน้ารายละเอียดหลังกดยืนยัน)</label>
+            <input type="text" id="c-mgmt-secondary-img" class="mgmt-input">
+        </div>
+
+        <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold; margin-top:20px;" onclick="saveCharMgmt()">บันทึกตัวละคร</button>
+    </div>
+</div>
+
+<!-- Modal: Gallery Management -->
+<div id="gallery-mgmt-modal" class="modal-overlay" onclick="this.style.display='none'">
+    <div class="modal-content" style="width: 550px;" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="document.getElementById('gallery-mgmt-modal').style.display='none'">&times;</span>
+        <h3>จัดการ Gallery</h3>
+        
+        <div style="margin-bottom: 20px;">
+            <label class="mgmt-label">จัดการโฟลเดอร์แกลเลอรี</label>
+            <div id="gallery-folder-list"></div>
+            <button class="char-btn-ui" onclick="addGalleryFolderField()">+ สร้างโฟลเดอร์</button>
+        </div>
+
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+            <label class="mgmt-label">จัดการรูปภาพ</label>
+            <div id="gallery-image-list"></div>
+            <button class="char-btn-ui" onclick="addGalleryImgField()">+ เพิ่มรูปภาพ</button>
+        </div>
+
+        <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold; margin-top: 20px; background: var(--box-border); color: black;" onclick="saveGalleryMgmt()">บันทึก Gallery</button>
+    </div>
+</div>
+
+<!-- Modal: Credit & Design Info Management -->
+<div id="credit-mgmt-modal" class="modal-overlay" onclick="this.style.display='none'">
+    <div class="modal-content" style="width: 400px;" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="document.getElementById('credit-mgmt-modal').style.display='none'">&times;</span>
+        <h3>แก้ไข Credit & Design Info</h3>
+        <div class="mgmt-input-row"><label class="mgmt-label">ชื่อศิลปิน</label><input type="text" id="credit-artist-input" class="mgmt-input"></div>
+        <div class="mgmt-input-row"><label class="mgmt-label">ลิงก์ผลงาน (URL)</label><input type="text" id="credit-link-input" class="mgmt-input"></div>
+        <div style="border-top: 1px solid #444; margin: 15px 0; padding-top: 15px;"></div>
+        <div class="mgmt-input-row"><label class="mgmt-label">Value (มูลค่า)</label><input type="text" id="design-value-input" class="mgmt-input" placeholder="เช่น 500 THB"></div>
+        <div class="mgmt-input-row">
+            <label class="mgmt-label">Usage (การใช้งาน)</label>
+            <select id="design-usage-input" class="mgmt-select">
+                <option value="Personal">Personal</option>
+                <option value="Commercial use">Commercial use</option>
+            </select>
+        </div>
+        <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold;" onclick="saveCreditAndDesignMgmt()">บันทึกข้อมูล</button>
+    </div>
+</div>
+
+<!-- Modal: Basic Info Management -->
+<div id="basic-info-mgmt-modal" class="modal-overlay" onclick="this.style.display='none'">
+    <div class="modal-content" style="width: 500px;" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="document.getElementById('basic-info-mgmt-modal').style.display='none'">&times;</span>
+        <h3>จัดการข้อมูลพื้นฐาน (Basic Info)</h3>
+        <div id="basic-info-input-list"></div>
+        <button class="char-btn-ui" style="margin-bottom: 15px;" onclick="addBasicInfoField()">+ เพิ่มหัวข้อ</button>
+        <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold; background: var(--box-border); color: black;" onclick="saveBasicInfoMgmt()">บันทึกข้อมูลพื้นฐาน</button>
+    </div>
+</div>
+
+<!-- Modal: Design Rules ID Management -->
+<div id="rules-id-mgmt-modal" class="modal-overlay" onclick="this.style.display='none'">
+    <div class="modal-content" style="width: 400px;" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="document.getElementById('rules-id-mgmt-modal').style.display='none'">&times;</span>
+        <h3>แก้ไขไอดีกฎการใช้งาน</h3>
+        <div class="mgmt-input-row">
+            <label class="mgmt-label">Drive ID รูปภาพกฎ</label>
+            <input type="text" id="rules-id-input" class="mgmt-input" placeholder="วางไอดีรูปภาพที่นี่...">
+        </div>
+        <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold;" onclick="saveRulesIdMgmt()">บันทึกไอดี</button>
+    </div>
+</div>
+
+<!-- Modal: Design Rules Viewer -->
+<div id="rules-view-modal" class="modal-overlay" onclick="this.style.display='none'">
+    <div style="position:relative; max-width:90%; max-height:90%;" onclick="event.stopPropagation()">
+        <span class="modal-close" style="top:-30px; right:0; color:white;" onclick="document.getElementById('rules-view-modal').style.display='none'">&times;</span>
+        <img id="rules-display-img" src="" style="max-width:100%; max-height:90vh; display:block;">
+    </div>
+</div>
+
+<!-- Modal: Login -->
+<div id="login-modal" class="modal-overlay" onclick="this.style.display='none'">
+    <div class="modal-content" style="width: 350px;" onclick="event.stopPropagation()">
+        <h3>Admin Login</h3>
+        <input type="password" id="admin-pass" style="width:100%; padding:10px; margin-bottom:15px; background:#111; border:1px solid #444; color:white;">
+        <button class="char-btn-ui" style="width:100%" onclick="verifyAdmin()">Login</button>
+    </div>
+</div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycby-9Su85yUNOk3jwSOJPp52mYOn_a69UH389DVQwKTt1-rm6aCyBAXszWqbNtu40-90/exec";
+    const FRAME_IMG = "https://lh3.googleusercontent.com/u/0/d/1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC";
+    const DEFAULT_FOLDER_ICON = "https://cdn-icons-png.flaticon.com/512/716/716784.png";
+    const TAG_OPTIONS = ['mascot', 'forever home', 'yume', 'eo', 'sp', 'ota', 'freebie'];
+    const ICON_COPY = "https://lh3.googleusercontent.com/u/0/d/1YuawN-quG1Nq1AvRr8O1VjTnfihirqQw";
+
+    let rootData = { 
+        name: "home", 
+        subFolders: [], 
+        characters: [], 
+        description: "",
+        profile: {
+            name: "Dominic",
+            bio: "welcome to my character folders ♡",
+            pfp: "1SuwqVv1aEXGDvSmESqPYSAlihq74IvNQ",
+            frame: "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC"
+        }
+    };
+    let currentPath = []; 
+    let viewMode = 'folder'; 
+    let activeTag = 'All'; 
+    let isAdmin = false;
+    let adminPassInBase = "1234";
+    let folderEditIdx = -1;
+    let charEditIdx = -1;
+    let termsAccepted = false;
+    let currentlyViewedChar = null;
+    let pendingCWChar = null;
+    let currentGalleryImages = [];
+    let currentImageIndex = 0;
+
+    async function loadData() {
+        try {
+            const resp = await fetch(API_URL);
+            const d = await resp.json();
+            if(d.folderData) {
+                const parsed = JSON.parse(d.folderData);
+                rootData = {...rootData, ...parsed};
+                if (!rootData.profile) rootData.profile = { name: "Dominic", bio: "welcome to my character folders ♡", pfp: "1SuwqVv1aEXGDvSmESqPYSAlihq74IvNQ", frame: "1_Vlkh3IL6qO2XRVpu0BcHXhA1nBLvskC" };
+            }
+            else if (d.charList && d.charList.length > 0) rootData.characters = d.charList;
+            adminPassInBase = (d.adminPass || "1234").toString();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const charNameFromUrl = urlParams.get('c');
+            if(charNameFromUrl) {
+                termsAccepted = true;
+                document.getElementById('page-char-terms').style.display = 'none';
+                document.getElementById('char-main-list').style.display = 'block';
+                const foundChar = findCharacterInTree(rootData, charNameFromUrl);
+                if(foundChar) {
+                    renderView();
+                    openPopDetails(foundChar);
+                } else { renderView(); }
+            } else if(termsAccepted) { renderView(); }
+        } catch(e) { console.error("Load failed", e); }
+    }
+
+    function findCharacterInTree(folder, name) {
+        let res = folder.characters.find(c => c.name === name);
+        if(res) return res;
+        for(let s of folder.subFolders) {
+            res = findCharacterInTree(s, name);
+            if(res) return res;
+        }
+        return null;
+    }
+
+    function acceptTerms() {
+        termsAccepted = true;
+        document.getElementById('page-char-terms').style.display = 'none';
+        document.getElementById('char-main-list').style.display = 'block';
+        renderView();
+    }
+
+    function getCurrentFolder() {
+        let folder = rootData;
+        for (let idx of currentPath) folder = folder.subFolders[idx];
+        return folder;
+    }
+
+    function renderView() {
+        const folder = getCurrentFolder();
+        document.getElementById('owner-name-display').innerText = rootData.profile.name;
+        document.getElementById('owner-bio-display').innerText = rootData.profile.bio;
+        document.getElementById('owner-pfp-display').src = `https://lh3.googleusercontent.com/u/0/d/${rootData.profile.pfp}`;
+        document.getElementById('owner-frame-display').src = `https://lh3.googleusercontent.com/u/0/d/${rootData.profile.frame}`;
+        document.getElementById('edit-profile-btn').style.display = isAdmin ? 'block' : 'none';
+        renderBreadcrumbs();
+        document.getElementById('back-nav-row').style.display = (currentPath.length > 0) ? 'flex' : 'none';
+        
+        const folderDisplay = document.getElementById('folder-display');
+        const descDisplay = document.getElementById('folder-desc-display');
+        const charCols = [document.getElementById('char-col-1'), document.getElementById('char-col-2'), document.getElementById('char-col-3'), document.getElementById('char-col-4')];
+        
+        folderDisplay.innerHTML = '';
+        charCols.forEach(c => c.innerHTML = '');
+
+        if (viewMode === 'folder') {
+            folder.subFolders.forEach((sub, idx) => {
+                const fDiv = document.createElement('div');
+                if (sub.displayStyle === 'flat') {
+                    fDiv.className = 'folder-item';
+                    fDiv.style.gridColumn = "1 / -1";
+                    fDiv.style.display = "block";
+                    fDiv.style.borderBottom = "1px solid rgba(255,255,255,0.2)";
+                    fDiv.style.padding = "15px 0 5px 0";
+                    fDiv.style.marginBottom = "5px";
+                    fDiv.onclick = () => { currentPath.push(idx); activeTag = 'All'; renderView(); };
+                    
+                    let adminHtml = isAdmin ? `<span style="float:right;"><span class="admin-mini-btn" onclick="event.stopPropagation(); openFolderMgmt(${idx})">edit</span><span class="admin-mini-btn" style="background:red" onclick="event.stopPropagation(); deleteFolder(${idx})">del</span></span>` : "";
+                    let flatDescHtml = (sub.description) ? `<div style="font-size:12px; color:rgba(255,255,255,0.7); margin-top:4px; font-weight:normal; text-align:left;">${sub.description}</div>` : "";
+                    
+                    fDiv.innerHTML = `<div class="folder-name" style="text-align:left; font-size:16px; margin:0; font-weight:bold; display:inline-block;">${sub.name}</div>${adminHtml}${flatDescHtml}`;
+                } else {
+                    fDiv.className = 'folder-item';
+                    fDiv.onclick = () => { currentPath.push(idx); activeTag = 'All'; renderView(); };
+                    let adminHtml = isAdmin ? `<div style="position:absolute; top:5px; right:5px; z-index:10; display:flex; flex-direction:column; align-items:flex-end;"><span class="admin-mini-btn" onclick="event.stopPropagation(); openFolderMgmt(${idx})">edit</span><span class="admin-mini-btn" style="background:red" onclick="event.stopPropagation(); deleteFolder(${idx})">del</span></div>` : "";
+                    const iconSrc = sub.coverImg ? `https://lh3.googleusercontent.com/u/0/d/${sub.coverImg}` : DEFAULT_FOLDER_ICON;
+                    fDiv.innerHTML = `<img src="${iconSrc}" class="folder-icon" loading="lazy"><div class="folder-name">${sub.name}</div>${adminHtml}`;
+                }
+                folderDisplay.appendChild(fDiv);
+            });
+        }
+
+        descDisplay.innerText = folder.description || "";
+        descDisplay.style.display = (folder.description) ? 'block' : 'none';
+        const editDescBtn = document.getElementById('edit-desc-btn');
+        editDescBtn.style.display = (isAdmin && currentPath.length > 0) ? 'inline-block' : 'none';
+
+        let charsToRender = [];
+        if (viewMode === 'folder') {
+            folder.subFolders.forEach(sub => {
+                if (sub.displayStyle === 'flat') {
+                    sub.characters.forEach(c => charsToRender.push(c));
+                }
+            });
+            folder.characters.forEach(c => charsToRender.push(c));
+        } else {
+            function collect(f, list) { 
+                f.characters.forEach(c => list.push(c)); 
+                f.subFolders.forEach(s => collect(s, list)); 
+            }
+            collect(rootData, charsToRender);
+        }
+
+        if (activeTag !== 'All') {
+            charsToRender = charsToRender.filter(c => {
+                if (Array.isArray(c.tags)) return c.tags.includes(activeTag);
+                return c.tag === activeTag;
+            });
+        }
+        
+        renderCharGrid(charsToRender, charCols);
+    }
+
+    function renderCharGrid(chars, cols) {
+        chars.forEach((char, idx) => {
+            const card = document.createElement('div');
+            card.className = 'char-card';
+            let adminHtml = isAdmin ? `<div style="margin-top:5px"><span class="admin-mini-btn" onclick="openCharMgmt(${idx})">แก้ไข</span><span class="admin-mini-btn" style="color:red" onclick="deleteChar(${idx})">ลบ</span></div>` : "";
+            const frameSrc = char.frame ? `https://lh3.googleusercontent.com/u/0/d/${char.frame}` : FRAME_IMG;
+            card.innerHTML = `<div class="char-frame-wrap" onclick="openPopDetails(${JSON.stringify(char).replace(/"/g, '&quot;')})"><img class="char-frame-img" src="${frameSrc}"><img class="char-thumb" src="https://lh3.googleusercontent.com/u/0/d/${char.img}" loading="lazy"></div><div class="char-name-label">${char.name}</div>${adminHtml}`;
+            const smallestCol = cols.reduce((p, c) => p.childElementCount <= c.childElementCount ? p : c);
+            smallestCol.appendChild(card);
+        });
+    }
+
+    function renderBreadcrumbs() {
+        const bc = document.getElementById('breadcrumbs'); bc.innerHTML = '';
+        const homeBtn = document.createElement('span'); 
+        homeBtn.className = 'breadcrumb-item'; 
+        homeBtn.innerText = 'characters'; 
+        homeBtn.onclick = () => { currentPath = []; activeTag = 'All'; renderView(); };
+        bc.appendChild(homeBtn);
+        let tempPath = []; let folder = rootData;
+        currentPath.forEach((idx) => {
+            bc.appendChild(document.createTextNode(' > ')); folder = folder.subFolders[idx]; tempPath.push(idx);
+            const btn = document.createElement('span'); 
+            btn.className = 'breadcrumb-item'; 
+            btn.innerText = folder.name;
+            const targetPath = [...tempPath]; btn.onclick = () => { currentPath = targetPath; activeTag = 'All'; renderView(); };
+            bc.appendChild(btn);
+        });
+    }
+
+    function goBack() { if (currentPath.length > 0) { currentPath.pop(); activeTag = 'All'; renderView(); } }
+
+    function setViewMode(mode) {
+        viewMode = mode;
+        document.getElementById('mode-folder').style.background = (mode === 'folder') ? 'var(--box-border)' : 'rgba(255,255,255,0.1)';
+        document.getElementById('mode-folder').style.color = (mode === 'folder') ? 'black' : 'white';
+        document.getElementById('mode-all').style.background = (mode === 'all') ? 'var(--box-border)' : 'rgba(255,255,255,0.1)';
+        document.getElementById('mode-all').style.color = (mode === 'all') ? 'black' : 'white';
+        renderView();
+    }
+
+    function setCategoryFilter(tag, btn) {
+        activeTag = tag;
+        document.querySelectorAll('.category-bar .filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderView();
+    }
+
+    function copyCharLink(name) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('c', name);
+        navigator.clipboard.writeText(url.toString()).then(() => {
+            alert('คัดลอกลิงก์ตัวละครเรียบร้อยแล้ว!');
+        });
+    }
+
+    function openPopDetails(char) {
+        const findRef = (f) => {
+            let res = f.characters.find(c => c.img === char.img && c.name === char.name);
+            if (res) return res;
+            for (let s of f.subFolders) { res = findRef(s); if (res) return res; }
+            return null;
+        };
+        currentlyViewedChar = findRef(rootData) || char;
+
+        if (currentlyViewedChar.isCW && !isAdmin) {
+            pendingCWChar = currentlyViewedChar;
+            document.getElementById('cw-overlay').style.display = 'flex';
+            return;
+        }
+        showSoloViewActual();
+    }
+
+    function confirmCW() {
+        document.getElementById('cw-overlay').style.display = 'none';
+        showSoloViewActual();
+    }
+    function cancelCW() {
+        document.getElementById('cw-overlay').style.display = 'none';
+        pendingCWChar = null;
+    }
+
+    function showSoloViewActual() {
+        const char = currentlyViewedChar;
+        document.getElementById('char-main-list').style.display = 'none';
+        document.getElementById('page-char-solo').style.display = 'block';
+        const target = document.getElementById('solo-content-target');
+        
+        const tags = Array.isArray(char.tags) ? char.tags : (char.tag ? [char.tag] : []);
+        let tagsHtml = tags.map(t => `<span class="solo-tag-pill">${t}</span>`).join('');
+
+        const frameSrc = char.frame ? `https://lh3.googleusercontent.com/u/0/d/${char.frame}` : FRAME_IMG;
+        const displayImg = (char.isCW && char.secondaryImg) ? char.secondaryImg : char.img;
+
+        let editCreditBtn = isAdmin ? `<button class="admin-mini-btn" style="margin-top:10px; width:100%" onclick="openCreditMgmt()">edit credit & design info</button>` : '';
+        let editRulesBtn = isAdmin ? `<button class="admin-mini-btn" style="margin-left:5px; display:inline-block;" onclick="openRulesIdMgmt()">edit rules id</button>` : '';
+        
+        let basicInfoHtml = '';
+        const listItems = (char.basicInfo || []).map(info => 
+            (info.key && info.value) ? `<li class="basic-info-item"><span class="basic-info-key">${info.key}</span><span class="basic-info-val">${info.value}</span></li>` : ''
+        ).join('');
+
+        if (listItems || isAdmin) {
+            basicInfoHtml = `<div class="solo-section"><div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1.5px solid rgba(255,255,255,0.2); margin-bottom:10px;"><div class="solo-section-title" style="border:none; margin:0;">Basic Information</div>${isAdmin ? `<button class="char-btn-ui" style="border-color:#ffcc00; color:#ffcc00;" onclick="openBasicInfoMgmt()">edit basic info</button>` : ''}</div>${listItems ? `<ul class="basic-info-list">${listItems}</ul>` : ''}</div>`;
+        }
+
+        let editBioContent = isAdmin ? `<textarea id="solo-bio-input" class="mgmt-textarea" style="height:100px;">${char.bio || ''}</textarea><button class="char-btn-ui" style="margin-top:10px; background:var(--box-border); color:black; width:100%" onclick="saveSoloBio()">Save Bio</button>` : (char.bio || '');
+        let bioSectionHtml = (char.bio || isAdmin) ? `<div class="solo-section"><div class="solo-section-title">Biography</div><div class="solo-text">${editBioContent}</div></div>` : '';
+
+        currentGalleryImages = [];
+        if(char.gallery) char.gallery.forEach(g => currentGalleryImages.push(g.url));
+
+        let galleryHtml = '';
+        const galleryFolders = char.galleryFolders || [];
+        
+        const topImgs = (char.gallery || []).filter(g => !g.folder || g.folder === "");
+        if(topImgs.length > 0) {
+            galleryHtml += `<div class="gallery-folder-container"><div class="solo-gallery-grid">`;
+            topImgs.forEach(img => {
+                let fullIdx = currentGalleryImages.indexOf(img.url);
+                galleryHtml += `<div class="gallery-item" onclick="openLightbox(${fullIdx})"><img src="https://lh3.googleusercontent.com/u/0/d/${img.url}" style="width:100%; border-radius:4px;" loading="lazy"><div class="watermark-tile"></div></div>`;
+            });
+            galleryHtml += `</div></div>`;
+        }
+
+        galleryFolders.forEach(fName => {
+            const fImgs = (char.gallery || []).filter(g => g.folder === fName);
+            if(fImgs.length > 0) {
+                galleryHtml += `<div class="gallery-folder-container"><div class="gallery-folder-title">${fName}</div><div class="solo-gallery-grid">`;
+                fImgs.forEach(img => {
+                    let fullIdx = currentGalleryImages.indexOf(img.url);
+                    galleryHtml += `<div class="gallery-item" onclick="openLightbox(${fullIdx})"><img src="https://lh3.googleusercontent.com/u/0/d/${img.url}" style="width:100%; border-radius:4px;" loading="lazy"><div class="watermark-tile"></div></div>`;
+                });
+                galleryHtml += `</div></div>`;
+            }
+        });
+
+        target.innerHTML = `
+            <div class="solo-layout">
+                <div class="solo-top-area">
+                    <div class="solo-profile-box">
+                        <div class="owner-pfp-frame" style="width: 130px; height: 130px;">
+                            <img class="owner-frame-img" src="${frameSrc}">
+                            <img class="owner-pfp-img" src="https://lh3.googleusercontent.com/u/0/d/${displayImg}">
+                        </div>
+                        <div>
+                            <div style="font-size:32px; font-weight:700;">${char.name}</div>
+                            <div style="display:flex; flex-direction:column; align-items:flex-start; gap:4px;">
+                                <div style="display:flex; align-items:center;">
+                                    <button class="btn-rules" onclick="showDesignRules('${char.rulesImg || ''}')">กฎการใช้งานดีไซน์</button>
+                                    <img src="${ICON_COPY}" class="btn-copy-link" onclick="copyCharLink('${char.name.replace(/'/g, "\\'")}')" title="คัดลอกลิงก์ตัวละคร">
+                                    ${editRulesBtn}
+                                </div>
+                                <div id="solo-tags-area">${tagsHtml}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="solo-credit-card">
+                        <div style="font-size:11px; text-align:right; color:rgba(255,255,255,0.8); display:flex; flex-direction:column; gap:4px;">
+                            <div>artist: <a href="${char.artistLink || '#'}" target="_blank" style="color:rgba(255,255,255,0.8); font-weight:normal;">${char.artist || 'unknown'}</a></div>
+                            <div>value: ${char.designValue || 'not set'}</div>
+                            <div>usage: ${char.designUsage || 'personal'}</div>
+                        </div>
+                        ${editCreditBtn}
+                    </div>
+                </div>
+                <div class="solo-main-content">
+                    ${basicInfoHtml}
+                    ${bioSectionHtml}
+                    <div class="solo-section" style="margin-top:30px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1.5px solid rgba(255,255,255,0.2); margin-bottom:10px;"><div class="solo-section-title" style="border:none; margin:0;">Gallery</div>${isAdmin ? `<button class="char-btn-ui" style="border-color:#ffcc00; color:#ffcc00;" onclick="openGalleryMgmt()">edit gallery</button>` : ''}</div>
+                        <div id="solo-gallery-area">${galleryHtml}</div>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function openGalleryMgmt() {
+        const fList = document.getElementById('gallery-folder-list'); fList.innerHTML = '';
+        (currentlyViewedChar.galleryFolders || []).forEach(f => addGalleryFolderField(f));
+        
+        const iList = document.getElementById('gallery-image-list'); iList.innerHTML = '';
+        (currentlyViewedChar.gallery || []).forEach(img => addGalleryImgField(img.url, img.folder));
+        
+        document.getElementById('gallery-mgmt-modal').style.display = 'flex';
+    }
+
+    function addGalleryFolderField(val = '') {
+        const div = document.createElement('div'); div.className = 'mgmt-input-row'; div.style.display='flex'; div.style.gap='5px';
+        div.innerHTML = `<input type="text" class="mgmt-input g-folder-name" value="${val}" placeholder="ชื่อโฟลเดอร์"><button class="char-btn-ui" style="background:red" onclick="this.parentElement.remove()">X</button>`;
+        document.getElementById('gallery-folder-list').appendChild(div);
+    }
+
+    function addGalleryImgField(u='', f='') {
+        const div = document.createElement('div'); div.className = 'mgmt-input-row'; div.style.display='flex'; div.style.gap='5px'; div.style.flexDirection='column';
+        div.style.background='rgba(255,255,255,0.05)'; div.style.padding='10px'; div.style.borderRadius='5px';
+        
+        let folderOptions = `<option value="">(ไม่มีโฟลเดอร์)</option>`;
+        const existingFolders = Array.from(document.querySelectorAll('.g-folder-name')).map(input => input.value.trim()).filter(v => v);
+        existingFolders.forEach(fname => {
+            folderOptions += `<option value="${fname}" ${fname === f ? 'selected' : ''}>${fname}</option>`;
+        });
+
+        div.innerHTML = `
+            <input type="text" class="mgmt-input g-url" placeholder="Drive ID รูป" value="${u}">
+            <div style="display:flex; gap:5px; margin-top:5px;">
+                <select class="mgmt-select g-folder-select" style="flex:1">${folderOptions}</select>
+                <button class="char-btn-ui" style="background:red" onclick="this.parentElement.remove()">X</button>
+            </div>`;
+        document.getElementById('gallery-image-list').appendChild(div);
+    }
+
+    function saveGalleryMgmt() {
+        const fInputs = document.querySelectorAll('.g-folder-name');
+        currentlyViewedChar.galleryFolders = Array.from(fInputs).map(i => i.value.trim()).filter(v => v);
+        
+        const urls = document.querySelectorAll('.g-url');
+        const folderSelects = document.querySelectorAll('.g-folder-select');
+        let data = [];
+        urls.forEach((u, i) => { if(u.value.trim()) data.push({url: u.value.trim(), folder: folderSelects[i].value}); });
+        currentlyViewedChar.gallery = data;
+        
+        document.getElementById('gallery-mgmt-modal').style.display = 'none';
+        syncData(); showSoloViewActual();
+    }
+
+    function openLightbox(idx) {
+        currentImageIndex = idx;
+        const url = currentGalleryImages[currentImageIndex];
+        document.getElementById('lightbox-img-target').src = `https://lh3.googleusercontent.com/u/0/d/${url}`;
+        document.getElementById('lightbox-modal').style.display = 'flex';
+    }
+
+    function changeLightboxImage(dir) {
+        currentImageIndex += dir;
+        if (currentImageIndex < 0) currentImageIndex = currentGalleryImages.length - 1;
+        if (currentImageIndex >= currentGalleryImages.length) currentImageIndex = 0;
+        const url = currentGalleryImages[currentImageIndex];
+        document.getElementById('lightbox-img-target').src = `https://lh3.googleusercontent.com/u/0/d/${url}`;
+    }
+
+    function openCreditMgmt() {
+        document.getElementById('credit-artist-input').value = currentlyViewedChar.artist || "";
+        document.getElementById('credit-link-input').value = currentlyViewedChar.artistLink || "";
+        document.getElementById('design-value-input').value = currentlyViewedChar.designValue || "";
+        document.getElementById('design-usage-input').value = currentlyViewedChar.designUsage || "Personal";
+        document.getElementById('credit-mgmt-modal').style.display = 'flex';
+    }
+
+    function saveCreditAndDesignMgmt() {
+        currentlyViewedChar.artist = document.getElementById('credit-artist-input').value.trim();
+        currentlyViewedChar.artistLink = document.getElementById('credit-link-input').value.trim();
+        currentlyViewedChar.designValue = document.getElementById('design-value-input').value.trim();
+        currentlyViewedChar.designUsage = document.getElementById('design-usage-input').value;
+        document.getElementById('credit-mgmt-modal').style.display = 'none';
+        syncData(); showSoloViewActual();
+    }
+
+    function openBasicInfoMgmt() {
+        const list = document.getElementById('basic-info-input-list'); list.innerHTML = '';
+        (currentlyViewedChar.basicInfo || []).forEach(info => addBasicInfoField(info.key, info.value));
+        if((currentlyViewedChar.basicInfo || []).length === 0) addBasicInfoField();
+        document.getElementById('basic-info-mgmt-modal').style.display = 'flex';
+    }
+
+    function addBasicInfoField(k='', v='') {
+        const div = document.createElement('div'); div.className = 'mgmt-input-row'; div.style.display = 'flex'; div.style.gap = '5px';
+        div.innerHTML = `<input type="text" class="mgmt-input b-key" placeholder="หัวข้อ" value="${k}" style="flex:1"><input type="text" class="mgmt-input b-val" placeholder="ข้อมูล" value="${v}" style="flex:2"><button class="char-btn-ui" style="background:red" onclick="this.parentElement.remove()">X</button>`;
+        document.getElementById('basic-info-input-list').appendChild(div);
+    }
+
+    function saveBasicInfoMgmt() {
+        const keys = document.querySelectorAll('.b-key');
+        const vals = document.querySelectorAll('.b-val');
+        let data = [];
+        keys.forEach((k, i) => { if(k.value.trim()) data.push({key: k.value.trim(), value: vals[i].value.trim()}); });
+        currentlyViewedChar.basicInfo = data;
+        document.getElementById('basic-info-mgmt-modal').style.display = 'none';
+        syncData(); showSoloViewActual();
+    }
+
+    function showDesignRules(imgId) {
+        if(!imgId) { alert("ไม่มีข้อมูลรูปภาพกฎการใช้งาน"); return; }
+        document.getElementById('rules-display-img').src = `https://lh3.googleusercontent.com/u/0/d/${imgId}`;
+        document.getElementById('rules-view-modal').style.display = 'flex';
+    }
+
+    function openRulesIdMgmt() {
+        document.getElementById('rules-id-input').value = currentlyViewedChar.rulesImg || "";
+        document.getElementById('rules-id-mgmt-modal').style.display = 'flex';
+    }
+
+    function saveRulesIdMgmt() {
+        currentlyViewedChar.rulesImg = document.getElementById('rules-id-input').value.trim();
+        document.getElementById('rules-id-mgmt-modal').style.display = 'none';
+        syncData(); showSoloViewActual();
+    }
+
+    function saveSoloBio() {
+        currentlyViewedChar.bio = document.getElementById('solo-bio-input').value.trim();
+        syncData(); alert("Saved bio!"); showSoloViewActual();
+    }
+
+    function closeSoloView() {
+        document.getElementById('page-char-solo').style.display = 'none';
+        document.getElementById('char-main-list').style.display = 'block';
+        renderView();
+    }
+
+    function openProfileMgmt() {
+        document.getElementById('p-mgmt-name').value = rootData.profile.name;
+        document.getElementById('p-mgmt-bio').value = rootData.profile.bio;
+        document.getElementById('p-mgmt-pfp').value = rootData.profile.pfp;
+        document.getElementById('p-mgmt-frame').value = rootData.profile.frame;
+        document.getElementById('profile-mgmt-modal').style.display = 'flex';
+    }
+
+    function saveProfileMgmt() {
+        rootData.profile.name = document.getElementById('p-mgmt-name').value.trim();
+        rootData.profile.bio = document.getElementById('p-mgmt-bio').value.trim();
+        rootData.profile.pfp = document.getElementById('p-mgmt-pfp').value.trim();
+        rootData.profile.frame = document.getElementById('p-mgmt-frame').value.trim();
+        document.getElementById('profile-mgmt-modal').style.display = 'none';
+        syncData(); renderView();
+    }
+
+    function openFolderMgmt(idx) {
+        folderEditIdx = idx;
+        if (idx === -1) { 
+            document.getElementById('mgmt-name-input').value = ""; 
+            document.getElementById('mgmt-img-input').value = ""; 
+            document.getElementById('mgmt-display-style').value = "normal";
+        }
+        else { 
+            const f = getCurrentFolder().subFolders[idx]; 
+            document.getElementById('mgmt-name-input').value = f.name; 
+            document.getElementById('mgmt-img-input').value = f.coverImg || "";
+            document.getElementById('mgmt-display-style').value = f.displayStyle || "normal";
+        }
+        document.getElementById('folder-mgmt-modal').style.display = 'flex';
+    }
+
+    function saveFolderMgmt() {
+        const name = document.getElementById('mgmt-name-input').value.trim();
+        const img = document.getElementById('mgmt-img-input').value.trim();
+        const dstyle = document.getElementById('mgmt-display-style').value;
+        if (!name) return;
+        const current = getCurrentFolder();
+        if (folderEditIdx === -1) {
+            current.subFolders.push({ name, coverImg: img, displayStyle: dstyle, subFolders: [], characters: [], description: "" });
+        } else { 
+            current.subFolders[folderEditIdx].name = name; 
+            current.subFolders[folderEditIdx].coverImg = img;
+            current.subFolders[folderEditIdx].displayStyle = dstyle;
+        }
+        document.getElementById('folder-mgmt-modal').style.display = 'none'; syncData(); renderView();
+    }
+
+    function openDescMgmt() {
+        document.getElementById('mgmt-desc-input').value = getCurrentFolder().description || "";
+        document.getElementById('desc-mgmt-modal').style.display = 'flex';
+    }
+
+    function saveFolderDesc() {
+        getCurrentFolder().description = document.getElementById('mgmt-desc-input').value;
+        document.getElementById('desc-mgmt-modal').style.display = 'none';
+        syncData(); renderView();
+    }
+
+    function getFolderOptions(folder, path, list) {
+        list.push({ name: folder.name, path: [...path] });
+        folder.subFolders.forEach((sub, idx) => getFolderOptions(sub, [...path, idx], list));
+    }
+
+    function toggleCWSecondaryInput() {
+        const isChecked = document.getElementById('c-mgmt-cw').checked;
+        document.getElementById('c-mgmt-secondary-wrap').style.display = isChecked ? 'block' : 'none';
+    }
+
+    function openCharMgmt(idx) {
+        charEditIdx = idx;
+        const select = document.getElementById('c-mgmt-folder'); select.innerHTML = '';
+        const options = []; getFolderOptions(rootData, [], options);
+        options.forEach(opt => {
+            const el = document.createElement('option'); el.value = JSON.stringify(opt.path);
+            el.innerText = opt.name + (opt.path.length === 0 ? " (Root)" : "");
+            if (JSON.stringify(opt.path) === JSON.stringify(currentPath)) el.selected = true;
+            select.appendChild(el);
+        });
+
+        const tagList = document.getElementById('c-mgmt-tag-list'); tagList.innerHTML = '';
+        let currentCharTags = [];
+        if (idx !== -1) {
+            const c = getCurrentFolder().characters[idx];
+            currentCharTags = Array.isArray(c.tags) ? c.tags : [c.tag];
+            document.getElementById('c-mgmt-name').value = c.name; 
+            document.getElementById('c-mgmt-img').value = c.img; 
+            document.getElementById('c-mgmt-frame').value = c.frame || "";
+            document.getElementById('c-mgmt-cw').checked = c.isCW || false;
+            document.getElementById('c-mgmt-secondary-img').value = c.secondaryImg || "";
+        } else {
+            document.getElementById('c-mgmt-name').value = ""; document.getElementById('c-mgmt-img').value = ""; document.getElementById('c-mgmt-frame').value = "";
+            document.getElementById('c-mgmt-cw').checked = false; document.getElementById('c-mgmt-secondary-img').value = "";
+        }
+        toggleCWSecondaryInput();
+
+        TAG_OPTIONS.forEach(tag => {
+            const div = document.createElement('label'); div.className = 'mgmt-tag-item';
+            const isChecked = currentCharTags.includes(tag) ? 'checked' : '';
+            div.innerHTML = `<input type="checkbox" name="char-tag-cb" value="${tag}" ${isChecked}> ${tag}`;
+            tagList.appendChild(div);
+        });
+        document.getElementById('char-mgmt-modal').style.display = 'flex';
+    }
+
+    function saveCharMgmt() {
+        const name = document.getElementById('c-mgmt-name').value.trim();
+        const img = document.getElementById('c-mgmt-img').value.trim();
+        const frame = document.getElementById('c-mgmt-frame').value.trim();
+        const isCW = document.getElementById('c-mgmt-cw').checked;
+        const secondaryImg = document.getElementById('c-mgmt-secondary-img').value.trim();
+        const targetPath = JSON.parse(document.getElementById('c-mgmt-folder').value || "[]");
+        const selectedTags = Array.from(document.querySelectorAll('input[name="char-tag-cb"]:checked')).map(cb => cb.value);
+        
+        if (!name || !img) return alert("ใส่ชื่อและไอดีรูป");
+        let targetFolder = rootData; for (let idx of targetPath) targetFolder = targetFolder.subFolders[idx];
+        const currentFolder = getCurrentFolder();
+        
+        let charObj = (charEditIdx === -1) ? { artist: "", bio: "", artistLink: "", rulesImg: "", designValue: "", designUsage: "Personal", basicInfo: [], gallery: [], galleryFolders: [] } : currentFolder.characters[charEditIdx];
+        charObj.name = name; charObj.img = img; charObj.frame = frame;
+        charObj.tags = selectedTags; charObj.tag = selectedTags[0] || 'mascot'; 
+        charObj.isCW = isCW; charObj.secondaryImg = secondaryImg;
+
+        if (charEditIdx === -1) targetFolder.characters.push(charObj);
+        else if (JSON.stringify(targetPath) !== JSON.stringify(currentPath)) {
+            currentFolder.characters.splice(charEditIdx, 1); targetFolder.characters.push(charObj);
+        }
+        document.getElementById('char-mgmt-modal').style.display = 'none'; syncData(); renderView();
+    }
+
+    function triggerAdminLogin() {
+        if(isAdmin) { isAdmin = false; document.body.classList.remove('is-admin-active'); document.getElementById('login-btn').innerText = "log in"; document.getElementById('admin-controls').style.display = 'none'; renderView(); }
+        else document.getElementById('login-modal').style.display = 'flex';
+    }
+
+    function verifyAdmin() {
+        if(document.getElementById('admin-pass').value === adminPassInBase) { isAdmin = true; document.body.classList.add('is-admin-active'); document.getElementById('login-btn').innerText = "logout admin"; document.getElementById('admin-controls').style.display = 'flex'; document.getElementById('login-modal').style.display = 'none'; renderView(); }
+        else alert("Wrong password!");
+    }
+
+    function deleteFolder(idx) { if(confirm("ลบโฟลเดอร์นี้?")) { getCurrentFolder().subFolders.splice(idx, 1); syncData(); renderView(); } }
+    function deleteChar(idx) { if(confirm("ลบตัวละครนี้?")) { getCurrentFolder().characters.splice(idx, 1); syncData(); renderView(); } }
+
+    async function syncData() {
+        const payload = { action: "saveCharacterFolders", folderData: JSON.stringify(rootData), adminPass: adminPassInBase };
+        await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
+    }
+
+    // --- Snow Implementation ---
+    const canvas = document.getElementById('snow-canvas');
+    const ctx = canvas.getContext('2d');
+    let flakes = [];
+    function initSnow() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        flakes = [];
+        for(let i=0; i<50; i++) {
+            flakes.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2 + 1,
+                speed: Math.random() * 1 + 0.5,
+                wind: Math.random() * 0.5 - 0.25
+            });
+        }
+    }
+    function drawSnow() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        flakes.forEach(f => {
+            ctx.beginPath();
+            ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "white";
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = "#D3BCE6"; 
+            ctx.fill();
+            f.y += f.speed;
+            f.x += f.wind;
+            if (f.y > canvas.height) { f.y = -5; f.x = Math.random() * canvas.width; }
+        });
+        requestAnimationFrame(drawSnow);
+    }
+    window.addEventListener('resize', initSnow);
+    initSnow();
+    drawSnow();
+
+    // --- Ripple Click Effect ---
+    window.addEventListener('mousedown', function(e) {
+        const ripple = document.createElement('div');
+        ripple.className = 'ripple';
+        ripple.style.left = e.clientX + 'px';
+        ripple.style.top = e.clientY + 'px';
+        document.body.appendChild(ripple);
+        ripple.addEventListener('animationend', () => ripple.remove());
+    });
+
+    loadData();
+</script>
+
+</body>
+</html>
