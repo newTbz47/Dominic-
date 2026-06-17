@@ -58,8 +58,37 @@
         .ipad-layout { width: 768px; position: relative; display: flex; flex-direction: column; z-index: 1; }
         .page-container { padding: 40px 60px 100px 60px; display: flex; flex-direction: column; width: 100%; }
 
-        /* แก้ไขปุ่มยอมรับหน้าแรกให้อยู่ตรงกลาง */
+        /* แก้ไขปุ่มยอมรับหน้าแรก */
         #page-char-terms { display: flex; flex-direction: column; align-items: center; width: 100%; }
+        .accept-btn { 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px; /* เพิ่มช่องว่างเล็กน้อย */
+            padding: 15px 40px; 
+            min-width: 320px; 
+            background: white; 
+            font-size: 20px; 
+            font-weight: 700; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin-top: 20px; 
+            color: #555; 
+            border:none; 
+            position: relative;
+            overflow: visible;
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            animation: btn-pulse 2s infinite; 
+            transition: transform 0.2s;
+        }
+        .accept-btn:active { transform: scale(0.96); }
+        .accept-btn img { width: 45px; height: 45px; object-fit: contain; } /* ปรับขนาดรูปภาพให้ใหญ่ขึ้น */
+
+        @keyframes btn-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
 
         /* --- Profile Section --- */
         .owner-profile-wrap { display: flex; align-items: center; gap: 25px; margin-bottom: 30px; background: rgba(0,0,0,0.3); padding: 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); position: relative; }
@@ -113,8 +142,6 @@
         .mgmt-input, .mgmt-select, .mgmt-textarea { width: 100%; padding: 12px; background: #111; border: 1.5px solid var(--box-border); color: white; border-radius: 8px; font-size: 14px; }
         .mgmt-textarea { height: 150px; resize: none; }
 
-        .accept-btn { padding: 15px 40px; background: white; font-size: 20px; font-weight: 700; border-radius: 5px; cursor: pointer; margin-top: 20px; color: #555; border:none; }
-
         /* --- Solo View --- */
         #page-char-solo { display: none; flex-direction: column; width: 100%; }
         .solo-top-area { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 25px; gap: 20px; }
@@ -164,8 +191,23 @@
 
         /* Effects */
         #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
-        .ripple { position: fixed; border: 2px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.05); border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); animation: ripple-out 0.6s ease-out forwards; z-index: 99999; }
-        @keyframes ripple-out { from { width: 0; height: 0; opacity: 0.8; } to { width: 150px; height: 150px; opacity: 0; } }
+        
+        /* New Sparkle Effect CSS */
+        .sparkle-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999999;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transform: translate(-50%, -50%);
+            animation: sparkle-fade-out 0.8s ease-out forwards;
+        }
+        @keyframes sparkle-fade-out {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+            30% { opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.2) rotate(45deg); opacity: 0; }
+        }
 
         #cw-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; padding: 20px; }
         .cw-box { max-width: 500px; border: 2px solid #ff4444; padding: 40px; border-radius: 10px; }
@@ -176,6 +218,31 @@
         
         /* Floating Back Button */
         .floating-back-btn { position: fixed; bottom: 30px; left: 30px; width: 45px; height: 45px; background: var(--box-border); color: #000; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 20px; }
+
+        /* --- Toast Notification --- */
+        .toast-msg {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(216, 167, 201, 0.95);
+            color: #1a1a1a;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            z-index: 99999;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            border: 1px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            letter-spacing: 0.5px;
+        }
+        .toast-msg.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
 
         /* --- Mobile Adjustments --- */
         @media (max-width: 767px) {
@@ -204,12 +271,17 @@
 <div class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()">↑</div>
 <div class="floating-back-btn" id="floatingBackBtn" onclick="handleFloatingBack()">←</div>
 
+<div id="toast-container" class="toast-msg">คัดลอกลิงก์สำเร็จ</div>
+
 <div class="ipad-layout">
     <div class="page-container">
         
         <div id="page-char-terms">
             <img src="https://lh3.googleusercontent.com/u/0/d/1O5Q2VdTozcIu1kHxwPYRRUbKJg09IJk_" style="width: 100%; height: auto;">
-            <button class="accept-btn" onclick="acceptTerms()">ยอมรับข้อตกลงและเข้าชม</button>
+            <button class="accept-btn" onclick="acceptTerms()">
+                <img src="https://lh3.googleusercontent.com/u/0/d/1ORMlNWzSCWAQSh6oRx_8yxbNE0UjEWQb" alt="Check">
+                ยอมรับข้อตกลง
+            </button>
         </div>
 
         <div id="char-main-list" style="display:none;">
@@ -408,10 +480,12 @@
         <div class="mgmt-input-row"><label class="mgmt-label">Value (มูลค่า)</label><input type="text" id="design-value-input" class="mgmt-input"></div>
         <div class="mgmt-input-row">
             <label class="mgmt-label">Usage (การใช้งาน)</label>
-            <select id="design-usage-input" class="mgmt-select">
-                <option value="Personal">Personal</option>
+            <select class="mgmt-select" id="credit-usage-preset" onchange="document.getElementById('design-usage-input').value = this.value">
+                <option value="">-- เลือก หรือพิมพ์เองด้านล่าง --</option>
+                <option value="Personal use">Personal use</option>
                 <option value="Commercial use">Commercial use</option>
             </select>
+            <input type="text" id="design-usage-input" class="mgmt-input" style="margin-top:5px;" placeholder="หรือระบุเองที่นี่...">
         </div>
         <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold;" onclick="saveCreditAndDesignMgmt()">บันทึกข้อมูล</button>
     </div>
@@ -432,20 +506,36 @@
 <div id="rules-id-mgmt-modal" class="modal-overlay" onclick="this.style.display='none'">
     <div class="modal-content" style="width: 400px;" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="document.getElementById('rules-id-mgmt-modal').style.display='none'">&times;</span>
-        <h3>แก้ไขไอดีกฎการใช้งาน</h3>
+        <h3>แก้ไขกฎการใช้งานดีไซน์</h3>
         <div class="mgmt-input-row">
+            <label class="mgmt-label">รูปแบบกฎ</label>
+            <select id="rules-type-select" class="mgmt-select" onchange="toggleRulesInputDisplay()">
+                <option value="image">รูปภาพ (Drive ID)</option>
+                <option value="text">ข้อความที่กำหนดไว้</option>
+            </select>
+        </div>
+        <div id="rules-image-input-wrap" class="mgmt-input-row">
             <label class="mgmt-label">Drive ID รูปภาพกฎ</label>
             <input type="text" id="rules-id-input" class="mgmt-input" oninput="this.value = extractDriveId(this.value)">
         </div>
-        <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold;" onclick="saveRulesIdMgmt()">บันทึกไอดี</button>
+        <div id="rules-text-input-wrap" class="mgmt-input-row" style="display:none;">
+            <label class="mgmt-label">เลือกข้อความ</label>
+            <select id="rules-text-select" class="mgmt-select">
+                <option value="ตัวละครนี้ไม่มีกฎการใช้งาน">ตัวละครนี้ไม่มีกฎการใช้งาน</option>
+                <option value="ยังไม่ได้ใส่รูปภาพ">ยังไม่ได้ใส่รูปภาพ</option>
+                <option value="กฎหาย">กฎหาย</option>
+            </select>
+        </div>
+        <button class="char-btn-ui" style="width: 100%; padding: 12px; font-weight: bold;" onclick="saveRulesIdMgmt()">บันทึกกฎ</button>
     </div>
 </div>
 
 <!-- Modal: Rules Viewer -->
 <div id="rules-view-modal" class="modal-overlay" onclick="this.style.display='none'">
-    <div style="position:relative; max-width:90%; max-height:90%;" onclick="event.stopPropagation()">
+    <div style="position:relative; max-width:90%; max-height:90%; display: flex; justify-content: center; align-items: center;" onclick="event.stopPropagation()">
         <span class="modal-close" style="top:-30px; right:0; color:white;" onclick="document.getElementById('rules-view-modal').style.display='none'">&times;</span>
-        <img id="rules-display-img" src="" style="max-width:100%; max-height:90vh; display:block;">
+        <img id="rules-display-img" src="" style="max-width:100%; max-height:90vh; display:none;">
+        <div id="rules-display-text" style="display:none; background: #222; padding: 40px; border-radius: 10px; color: white; font-size: 20px; font-weight: 700; border: 2px solid var(--box-border); text-align: center;"></div>
     </div>
 </div>
 
@@ -461,11 +551,17 @@
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycby-9Su85yUNOk3jwSOJPp52mYOn_a69UH389DVQwKTt1-rm6aCyBAXszWqbNtu40-90/exec";
     const FRAME_IMG = "https://lh3.googleusercontent.com/u/0/d/17RZqgplDGeyl_tMm80a-oiB3EPKPzvuv";
-    const DEFAULT_FOLDER_ICON = "https://cdn-icons-png.flaticon.com/512/716/716784.png";
+    const DEFAULT_FOLDER_ICON = "https://lh3.googleusercontent.com/u/0/d/1cB6DgaRmhZL1P9l2Pbga0MsSftKYb7-5";
     const TAG_OPTIONS = ['mascot', 'forever home', 'yume', 'eo', 'sp', 'ota', 'freebie'];
     const ICON_COPY = "https://lh3.googleusercontent.com/u/0/d/1YuawN-quG1Nq1AvRr8O1VjTnfihirqQw";
     const NEW_DEFAULT_IMG = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
     const ROSE_FRAME_ID = "17RZqgplDGeyl_tMm80a-oiB3EPKPzvuv";
+    
+    // Sparkle Images
+    const sparkleImgs = [
+        "https://lh3.googleusercontent.com/u/0/d/1sJ50AMg1WiJjz4zqX3Rv6w5Co96Jv8rf",
+        "https://lh3.googleusercontent.com/u/0/d/11kmEPZPJbNSDk8xifHK0YqpyYl1LatLJ"
+    ];
 
     let rootData = { 
         name: "home", subFolders: [], characters: [], description: "",
@@ -641,7 +737,18 @@
         renderView();
     }
 
-    function copyCharLink(name) { const url = new URL(window.location.href); url.searchParams.set('c', name); navigator.clipboard.writeText(url.toString()).then(() => alert('คัดลอกลิงก์ตัวละครเรียบร้อยแล้ว!')); }
+    function showToast(text) {
+        const toast = document.getElementById('toast-container');
+        toast.innerText = text;
+        toast.classList.add('show');
+        setTimeout(() => { toast.classList.remove('show'); }, 2000);
+    }
+
+    function copyCharLink(name) { 
+        const url = new URL(window.location.href); 
+        url.searchParams.set('c', name); 
+        navigator.clipboard.writeText(url.toString()).then(() => showToast('คัดลอกลิงก์สำเร็จ')); 
+    }
 
     function openPopDetails(char) {
         const findRef = (f) => { 
@@ -692,7 +799,7 @@
                         <div class="owner-pfp-frame"><img class="owner-frame-img" src="${char.frame ? `https://lh3.googleusercontent.com/u/0/d/${char.frame}` : FRAME_IMG}"><img class="owner-pfp-img" src="${(char.isCW && char.secondaryImg) ? (char.secondaryImg.startsWith('data:') ? char.secondaryImg : `https://lh3.googleusercontent.com/u/0/d/${char.secondaryImg}`) : (char.img.startsWith('data:') ? char.img : `https://lh3.googleusercontent.com/u/0/d/${char.img}`)}"></div>
                         <div>
                             <div style="font-size:32px; font-weight:700;">${char.name}</div>
-                            <div style="display:flex; align-items:center;"><button class="btn-rules" onclick="showDesignRules('${char.rulesImg || ''}')">กฎการใช้งานดีไซน์</button><img src="${ICON_COPY}" class="btn-copy-link" onclick="copyCharLink('${char.name.replace(/'/g, "\\'")}')">${isAdmin ? `<button class="admin-mini-btn" style="margin-left:5px" onclick="openRulesIdMgmt()">edit rules id</button>` : ''}</div>
+                            <div style="display:flex; align-items:center;"><button class="btn-rules" onclick="showDesignRules()">กฎการใช้งานดีไซน์</button><img src="${ICON_COPY}" class="btn-copy-link" onclick="copyCharLink('${char.name.replace(/'/g, "\\'")}')">${isAdmin ? `<button class="admin-mini-btn" style="margin-left:5px" onclick="openRulesIdMgmt()">edit rules id</button>` : ''}</div>
                             <div>${(Array.isArray(char.tags) ? char.tags : (char.tag ? [char.tag] : [])).map(t => `<span class="solo-tag-pill">${t}</span>`).join('')}</div>
                         </div>
                     </div>
@@ -730,7 +837,7 @@
         let fOptions = `<option value="">(ไม่มีโฟลเดอร์)</option>`;
         const uniqueFolders = [...new Set([...(Array.from(document.querySelectorAll('.g-folder-name')).map(i => i.value.trim()).filter(v => v)), ...(currentlyViewedChar.galleryFolders || [])])];
         uniqueFolders.forEach(fname => { fOptions += `<option value="${fname}" ${fname === img.folder ? 'selected' : ''}>${fname}</option>`; });
-        target.innerHTML = `<div class="mgmt-input-row"><label class="mgmt-label">Drive ID</label><input type="text" id="s-g-url" class="mgmt-input" value="${img.url}" oninput="this.value = extractDriveId(this.value)"></div><div class="mgmt-input-row"><label class="mgmt-label">ศิลปิน</label><input type="text" id="s-g-artist" class="mgmt-input" value="${img.artist || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">ลิงก์ศิลปิน</label><input type="text" id="s-g-link" class="mgmt-input" value="${img.artistLink || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">Usage</label><input type="text" id="s-g-usage" class="mgmt-input" value="${img.usage || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">เลือกโฟลเดอร์</label><select id="s-g-folder" class="mgmt-select">${fOptions}</select></div>${idx !== -1 ? `<button class="char-btn-ui" style="background:red; width:100%; margin-top:10px;" onclick="deleteSingleImage(${idx})">ลบรูปภาพนี้</button>` : ''}`;
+        target.innerHTML = `<div class="mgmt-input-row"><label class="mgmt-label">Drive ID</label><input type="text" id="s-g-url" class="mgmt-input" value="${img.url}" oninput="this.value = extractDriveId(this.value)"></div><div class="mgmt-input-row"><label class="mgmt-label">ศิลปิน</label><input type="text" id="s-g-artist" class="mgmt-input" value="${img.artist || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">ลิงก์ศิลปิน</label><input type="text" id="s-g-link" class="mgmt-input" value="${img.artistLink || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">Usage</label><select class="mgmt-select" onchange="document.getElementById('s-g-usage').value = this.value"><option value="">-- เลือก หรือพิมพ์เองด้านล่าง --</option><option value="Personal use" ${img.usage === 'Personal use' ? 'selected' : ''}>Personal use</option><option value="Commercial use" ${img.usage === 'Commercial use' ? 'selected' : ''}>Commercial use</option></select><input type="text" id="s-g-usage" class="mgmt-input" value="${img.usage || ''}" style="margin-top:5px;" placeholder="หรือระบุเองที่นี่..."></div><div class="mgmt-input-row"><label class="mgmt-label">เลือกโฟลเดอร์</label><select id="s-g-folder" class="mgmt-select">${fOptions}</select></div>${idx !== -1 ? `<button class="char-btn-ui" style="background:red; width:100%; margin-top:10px;" onclick="deleteSingleImage(${idx})">ลบรูปภาพนี้</button>` : ''}`;
         m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0;
     }
     function saveSingleImageEdit() {
@@ -753,15 +860,58 @@
     function closeLightbox() { document.body.classList.remove('lb-open'); document.getElementById('lightbox-modal').style.display = 'none'; }
     function changeLightboxImage(dir) { currentImageIndex += dir; if (currentImageIndex < 0) currentImageIndex = currentGalleryImages.length - 1; if (currentImageIndex >= currentGalleryImages.length) currentImageIndex = 0; openLightbox(currentImageIndex); }
 
-    function openCreditMgmt() { const m = document.getElementById('credit-mgmt-modal'); document.getElementById('credit-artist-input').value = currentlyViewedChar.artist || ""; document.getElementById('credit-link-input').value = currentlyViewedChar.artistLink || ""; document.getElementById('design-value-input').value = currentlyViewedChar.designValue || ""; document.getElementById('design-usage-input').value = currentlyViewedChar.designUsage || "Personal"; m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0; }
-    function saveCreditAndDesignMgmt() { currentlyViewedChar.artist = document.getElementById('credit-artist-input').value.trim(); currentlyViewedChar.artistLink = document.getElementById('credit-link-input').value.trim(); currentlyViewedChar.designValue = document.getElementById('design-value-input').value.trim(); currentlyViewedChar.designUsage = document.getElementById('design-usage-input').value; document.getElementById('credit-mgmt-modal').style.display = 'none'; syncData(); showSoloViewActual(); }
+    function openCreditMgmt() { const m = document.getElementById('credit-mgmt-modal'); document.getElementById('credit-artist-input').value = currentlyViewedChar.artist || ""; document.getElementById('credit-link-input').value = currentlyViewedChar.artistLink || ""; document.getElementById('design-value-input').value = currentlyViewedChar.designValue || ""; document.getElementById('design-usage-input').value = currentlyViewedChar.designUsage || ""; document.getElementById('credit-usage-preset').value = (['Personal use', 'Commercial use'].includes(currentlyViewedChar.designUsage)) ? currentlyViewedChar.designUsage : ""; m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0; }
+    function saveCreditAndDesignMgmt() { currentlyViewedChar.artist = document.getElementById('credit-artist-input').value.trim(); currentlyViewedChar.artistLink = document.getElementById('credit-link-input').value.trim(); currentlyViewedChar.designValue = document.getElementById('design-value-input').value.trim(); currentlyViewedChar.designUsage = document.getElementById('design-usage-input').value.trim(); document.getElementById('credit-mgmt-modal').style.display = 'none'; syncData(); showSoloViewActual(); }
     function openBasicInfoMgmt() { const m = document.getElementById('basic-info-mgmt-modal'); const l = document.getElementById('basic-info-input-list'); l.innerHTML = ''; (currentlyViewedChar.basicInfo || []).forEach(info => addBasicInfoField(info.key, info.value)); if((currentlyViewedChar.basicInfo || []).length === 0) addBasicInfoField(); m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0; }
     function addBasicInfoField(k='', v='') { const div = document.createElement('div'); div.className = 'mgmt-input-row'; div.style.display = 'flex'; div.style.gap = '5px'; div.innerHTML = `<input type="text" class="mgmt-input b-key" placeholder="หัวข้อ" value="${k}" style="flex:1"><input type="text" class="mgmt-input b-val" placeholder="ข้อมูล" value="${v}" style="flex:2"><button class="char-btn-ui" style="background:red" onclick="this.parentElement.remove()">X</button>`; document.getElementById('basic-info-input-list').appendChild(div); }
     function saveBasicInfoMgmt() { const keys = document.querySelectorAll('.b-key'), vals = document.querySelectorAll('.b-val'); let data = []; keys.forEach((k, i) => { if(k.value.trim()) data.push({key: k.value.trim(), value: vals[i].value.trim()}); }); currentlyViewedChar.basicInfo = data; document.getElementById('basic-info-mgmt-modal').style.display = 'none'; syncData(); showSoloViewActual(); }
-    function showDesignRules(id) { if(!id) return alert("ไม่มีรูปภาพกฎ"); document.getElementById('rules-display-img').src = `https://lh3.googleusercontent.com/u/0/d/${id}`; document.getElementById('rules-view-modal').style.display = 'flex'; }
-    function openRulesIdMgmt() { const m = document.getElementById('rules-id-mgmt-modal'); document.getElementById('rules-id-input').value = currentlyViewedChar.rulesImg || ""; m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0; }
-    function saveRulesIdMgmt() { currentlyViewedChar.rulesImg = document.getElementById('rules-id-input').value.trim(); document.getElementById('rules-id-mgmt-modal').style.display = 'none'; syncData(); showSoloViewActual(); }
-    function saveSoloBio() { currentlyViewedChar.bio = document.getElementById('solo-bio-input').value.trim(); syncData(); alert("Saved bio!"); showSoloViewActual(); }
+    
+    function toggleRulesInputDisplay() {
+        const type = document.getElementById('rules-type-select').value;
+        document.getElementById('rules-image-input-wrap').style.display = (type === 'image') ? 'block' : 'none';
+        document.getElementById('rules-text-input-wrap').style.display = (type === 'text') ? 'block' : 'none';
+    }
+    function showDesignRules() { 
+        const char = currentlyViewedChar;
+        const imgEl = document.getElementById('rules-display-img');
+        const txtEl = document.getElementById('rules-display-text');
+        
+        if (char.rulesType === 'text') {
+            imgEl.style.display = 'none';
+            txtEl.innerText = char.rulesText || "ไม่มีข้อมูล";
+            txtEl.style.display = 'block';
+        } else {
+            if(!char.rulesImg) return alert("ไม่มีรูปภาพกฎ");
+            txtEl.style.display = 'none';
+            imgEl.src = `https://lh3.googleusercontent.com/u/0/d/${char.rulesImg}`;
+            imgEl.style.display = 'block';
+        }
+        document.getElementById('rules-view-modal').style.display = 'flex'; 
+    }
+    function openRulesIdMgmt() { 
+        const m = document.getElementById('rules-id-mgmt-modal'); 
+        const typeSelect = document.getElementById('rules-type-select');
+        const idInput = document.getElementById('rules-id-input');
+        const textSelect = document.getElementById('rules-text-select');
+        
+        typeSelect.value = currentlyViewedChar.rulesType || 'image';
+        idInput.value = currentlyViewedChar.rulesImg || "";
+        textSelect.value = currentlyViewedChar.rulesText || "ตัวละครนี้ไม่มีกฎการใช้งาน";
+        
+        toggleRulesInputDisplay();
+        m.style.display = 'flex'; 
+        m.querySelector('.modal-content').scrollTop = 0; 
+    }
+    function saveRulesIdMgmt() { 
+        currentlyViewedChar.rulesType = document.getElementById('rules-type-select').value;
+        currentlyViewedChar.rulesImg = document.getElementById('rules-id-input').value.trim(); 
+        currentlyViewedChar.rulesText = document.getElementById('rules-text-select').value;
+        document.getElementById('rules-id-mgmt-modal').style.display = 'none'; 
+        syncData(); 
+        showSoloViewActual(); 
+    }
+
+    function saveSoloBio() { currentlyViewedChar.bio = document.getElementById('solo-bio-input').value.trim(); syncData(); showToast("บันทึกข้อมูลสำเร็จ"); showSoloViewActual(); }
     function closeSoloView() { document.getElementById('page-char-solo').style.display = 'none'; document.getElementById('char-main-list').style.display = 'block'; renderView(); }
 
     function openProfileMgmt() { const m = document.getElementById('profile-mgmt-modal'); document.getElementById('p-mgmt-name').value = rootData.profile.name; document.getElementById('p-mgmt-bio').value = rootData.profile.bio; document.getElementById('p-mgmt-pfp').value = rootData.profile.pfp.startsWith('data:') ? "" : rootData.profile.pfp; document.getElementById('p-mgmt-frame').value = rootData.profile.frame.startsWith('data:') ? "" : rootData.profile.frame; m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0; }
@@ -802,7 +952,7 @@
         if (!n) return alert("ใส่ชื่อตัวละคร");
         let targetF = rootData; for (let idx of targetP) targetF = targetF.subFolders[idx];
         const currentF = getCurrentFolder(); 
-        let charO = (charEditIdx === -1) ? { artist: "", bio: "", artistLink: "", rulesImg: "", designValue: "", designUsage: "Personal", basicInfo: [], gallery: [], galleryFolders: [] } : currentF.characters[charEditIdx];
+        let charO = (charEditIdx === -1) ? { artist: "", bio: "", artistLink: "", rulesImg: "", rulesType: "image", rulesText: "", designValue: "", designUsage: "Personal use", basicInfo: [], gallery: [], galleryFolders: [] } : currentF.characters[charEditIdx];
         charO.name = n; charO.img = i; charO.frame = f; charO.tags = tags; charO.tag = tags[0] || 'mascot'; charO.isCW = isCW; charO.secondaryImg = si;
         if (charEditIdx === -1) targetF.characters.push(charO); else if (JSON.stringify(targetP) !== JSON.stringify(currentPath)) { currentF.characters.splice(charEditIdx, 1); targetF.characters.push(charO); }
         document.getElementById('char-mgmt-modal').style.display = 'none'; syncData(); renderView(); if(document.getElementById('page-char-solo').style.display === 'block') showSoloViewActual();
@@ -817,11 +967,50 @@
     window.addEventListener('scroll', () => { 
         document.getElementById('scrollTopBtn').style.display = (window.scrollY > 300) ? 'flex' : 'none'; 
     });
+    
+    // New Sparkle Effect Script
+    function createSparkles(x, y) {
+        const amount = 6; // จำนวนประกายต่อการกด
+        for (let i = 0; i < amount; i++) {
+            const p = document.createElement('div');
+            p.className = 'sparkle-particle';
+            const img = sparkleImgs[Math.floor(Math.random() * sparkleImgs.length)];
+            p.style.backgroundImage = `url(${img})`;
+            
+            // สุ่มขนาด
+            const size = Math.random() * 25 + 15 + 'px';
+            p.style.width = size; p.style.height = size;
+            
+            // ตำแหน่ง
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            
+            // สุ่มการเยื้องเล็กน้อยเพื่อความเป็นประกาย (ไม่กระเด็นไกล)
+            const offsetX = (Math.random() - 0.5) * 40;
+            const offsetY = (Math.random() - 0.5) * 40;
+            p.style.marginLeft = offsetX + 'px';
+            p.style.marginTop = offsetY + 'px';
+            
+            // สุ่มความหน่วงของแอนิเมชัน
+            p.style.animationDelay = Math.random() * 0.2 + 's';
+
+            document.body.appendChild(p);
+            p.addEventListener('animationend', () => p.remove());
+        }
+    }
+
     const canvas = document.getElementById('snow-canvas'), ctx = canvas.getContext('2d'); let flakes = [];
     function initSnow() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; flakes = []; for(let i=0; i<50; i++) flakes.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, radius: Math.random()*2+1, speed: Math.random()*1+0.5, wind: Math.random()*0.5-0.25 }); }
     function drawSnow() { ctx.clearRect(0,0,canvas.width,canvas.height); flakes.forEach(f => { ctx.beginPath(); ctx.arc(f.x,f.y,f.radius,0,Math.PI*2); ctx.fillStyle="white"; ctx.shadowBlur=8; ctx.shadowColor="#D3BCE6"; ctx.fill(); f.y+=f.speed; f.x+=f.wind; if (f.y > canvas.height) { f.y=-5; f.x=Math.random()*canvas.width; } }); requestAnimationFrame(drawSnow); }
     window.addEventListener('resize', initSnow); initSnow(); drawSnow();
-    window.addEventListener('mousedown', (e) => { const r = document.createElement('div'); r.className='ripple'; r.style.left = (e.clientX + window.scrollX) + 'px'; r.style.top = (e.clientY + window.scrollY) + 'px'; document.body.appendChild(r); r.addEventListener('animationend',()=>r.remove()); });
+    
+    // ไวต่อสัมผัสทั้ง Mouse และ Touch
+    window.addEventListener('mousedown', (e) => createSparkles(e.clientX, e.clientY));
+    window.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        createSparkles(touch.clientX, touch.clientY);
+    }, {passive: true});
+
     loadData();
 </script>
 </body>
