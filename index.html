@@ -657,6 +657,9 @@
     function cancelCW() { document.getElementById('cw-overlay').style.display = 'none'; pendingCWChar = null; }
 
     function showSoloViewActual() {
+        // เพิ่มคำสั่ง Scroll Top ทันทีเมื่อเปิดหน้า Solo View
+        window.scrollTo(0, 0);
+
         const char = currentlyViewedChar; document.getElementById('char-main-list').style.display = 'none'; document.getElementById('page-char-solo').style.display = 'block';
         const target = document.getElementById('solo-content-target');
         const listItems = (char.basicInfo || []).map(info => (info.key && info.value) ? `<li class="basic-info-item"><span class="basic-info-key">${info.key}</span><span class="basic-info-val">${info.value}</span></li>` : '').join('');
