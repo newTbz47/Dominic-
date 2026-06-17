@@ -39,7 +39,7 @@
 
         /* --- ป้องกันรูปภาพ --- */
         img { -webkit-touch-callout: none !important; -webkit-user-drag: none !important; user-drag: none !important; pointer-events: none !important; }
-        .img-del-btn-float, .img-edit-btn, .admin-btn, .login-btn, .char-btn-ui, .save-btn, .modal-close, .lb-nav, .lb-close, .filter-btn, .accept-btn, .breadcrumb-item, .folder-item, .char-frame-wrap, .back-arrow, .lightbox-overlay, .cw-btn, .scroll-top-btn {
+        .img-del-btn-float, .img-edit-btn, .admin-btn, .login-btn, .char-btn-ui, .save-btn, .modal-close, .lb-nav, .lb-close, .filter-btn, .accept-btn, .breadcrumb-item, .folder-item, .char-frame-wrap, .back-arrow, .lightbox-overlay, .cw-btn, .scroll-top-btn, .floating-back-btn {
             pointer-events: auto !important;
         }
         body.is-admin-active * { -webkit-user-select: auto !important; user-select: auto !important; }
@@ -171,6 +171,9 @@
 
         /* Scroll Top Button */
         .scroll-top-btn { position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; background: var(--box-border); color: #000; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
+        /* Floating Back Button */
+        .floating-back-btn { position: fixed; bottom: 30px; left: 30px; width: 45px; height: 45px; background: var(--box-border); color: #000; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 20px; }
 
         /* --- Mobile Adjustments --- */
         @media (max-width: 767px) {
@@ -197,6 +200,7 @@
 </div>
 
 <div class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()">↑</div>
+<div class="floating-back-btn" id="floatingBackBtn" onclick="handleFloatingBack()">←</div>
 
 <div class="ipad-layout">
     <div class="page-container">
@@ -513,6 +517,24 @@
     function acceptTerms() { termsAccepted = true; document.getElementById('page-char-terms').style.display = 'none'; document.getElementById('char-main-list').style.display = 'block'; renderView(); }
     function getCurrentFolder() { let folder = rootData; for (let idx of currentPath) folder = folder.subFolders[idx]; return folder; }
 
+    function updateFloatingUI() {
+        const btn = document.getElementById('floatingBackBtn');
+        const isSolo = document.getElementById('page-char-solo').style.display === 'block';
+        if (isSolo || (viewMode === 'folder' && currentPath.length > 0)) {
+            btn.style.display = 'flex';
+        } else {
+            btn.style.display = 'none';
+        }
+    }
+
+    function handleFloatingBack() {
+        if (document.getElementById('page-char-solo').style.display === 'block') {
+            closeSoloView();
+        } else {
+            goBack();
+        }
+    }
+
     function renderView() {
         const folder = getCurrentFolder();
         document.getElementById('owner-name-display').innerText = rootData.profile.name;
@@ -520,13 +542,19 @@
         document.getElementById('owner-pfp-display').src = rootData.profile.pfp.startsWith('data:') ? rootData.profile.pfp : `https://lh3.googleusercontent.com/u/0/d/${rootData.profile.pfp}`;
         document.getElementById('owner-frame-display').src = `https://lh3.googleusercontent.com/u/0/d/${rootData.profile.frame}`;
         document.getElementById('edit-profile-btn').style.display = isAdmin ? 'block' : 'none';
+        
         renderBreadcrumbs();
-        document.getElementById('back-nav-row').style.display = (currentPath.length > 0) ? 'flex' : 'none';
         
         const folderDisplay = document.getElementById('folder-display'), descDisplay = document.getElementById('folder-desc-display'), charCols = [document.getElementById('char-col-1'), document.getElementById('char-col-2'), document.getElementById('char-col-3'), document.getElementById('char-col-4')];
         folderDisplay.innerHTML = ''; charCols.forEach(c => c.innerHTML = '');
 
+        let charsToRender = [];
+
         if (viewMode === 'folder') {
+            document.getElementById('back-nav-row').style.display = (currentPath.length > 0) ? 'flex' : 'none';
+            descDisplay.innerText = folder.description || ""; descDisplay.style.display = (folder.description) ? 'block' : 'none';
+            document.getElementById('edit-desc-btn').style.display = (isAdmin && currentPath.length > 0) ? 'inline-block' : 'none';
+
             folder.subFolders.forEach((sub, idx) => {
                 const fDiv = document.createElement('div');
                 if (sub.displayStyle === 'flat') {
@@ -540,28 +568,30 @@
                 }
                 folderDisplay.appendChild(fDiv);
             });
-        }
 
-        descDisplay.innerText = folder.description || ""; descDisplay.style.display = (folder.description) ? 'block' : 'none';
-        document.getElementById('edit-desc-btn').style.display = (isAdmin && currentPath.length > 0) ? 'inline-block' : 'none';
-
-        let charsToRender = [];
-        if (viewMode === 'folder') {
             folder.subFolders.forEach(sub => { if (sub.displayStyle === 'flat') sub.characters.forEach(c => charsToRender.push(c)); });
             folder.characters.forEach(c => charsToRender.push(c));
         } else {
-            function collect(f, list) { f.characters.forEach(c => list.push(c)); f.subFolders.forEach(s => collect(s, list)); }
-            collect(rootData, charsToRender);
+            document.getElementById('back-nav-row').style.display = 'none';
+            descDisplay.style.display = 'none';
+            document.getElementById('edit-desc-btn').style.display = 'none';
+
+            const collectAll = (f, list) => {
+                f.characters.forEach(c => list.push(c));
+                f.subFolders.forEach(s => collectAll(s, list));
+            };
+            collectAll(rootData, charsToRender);
         }
 
         if (activeTags.length > 0) {
             charsToRender = charsToRender.filter(c => {
                 const cTags = Array.isArray(c.tags) ? c.tags : [c.tag];
-                return activeTags.every(t => cTags.includes(t));
+                return activeTags.some(t => cTags.includes(t));
             });
         }
         charsToRender.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
         renderCharGrid(charsToRender, charCols);
+        updateFloatingUI();
     }
 
     function renderCharGrid(chars, cols) {
@@ -593,19 +623,19 @@
     function setCategoryFilter(tag, btn) {
         if (tag === 'All') {
             activeTags = [];
-            document.querySelectorAll('.category-bar .filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
         } else {
-            document.querySelector('.category-bar .filter-btn[data-tag="All"]').classList.remove('active');
-            if (activeTags.includes(tag)) {
-                activeTags = activeTags.filter(t => t !== tag);
-                btn.classList.remove('active');
-            } else {
-                activeTags.push(tag);
-                btn.classList.add('active');
-            }
-            if (activeTags.length === 0) document.querySelector('.category-bar .filter-btn[data-tag="All"]').classList.add('active');
+            if (activeTags.includes(tag)) activeTags = activeTags.filter(t => t !== tag);
+            else activeTags.push(tag);
+            if (activeTags.length === TAG_OPTIONS.length) activeTags = [];
         }
+        document.querySelectorAll('.category-bar .filter-btn').forEach(b => {
+            const bTag = b.getAttribute('data-tag');
+            if (activeTags.length === 0) {
+                if (bTag === 'All') b.classList.add('active'); else b.classList.remove('active');
+            } else {
+                if (bTag === 'All') b.classList.remove('active'); else if (activeTags.includes(bTag)) b.classList.add('active'); else b.classList.remove('active');
+            }
+        });
         renderView();
     }
 
@@ -680,22 +710,24 @@
                     <div class="solo-section"><div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1.5px solid rgba(255,255,255,0.2); margin-bottom:10px;"><div class="solo-section-title" style="border:none; margin:0;">Gallery</div>${isAdmin ? `<button class="char-btn-ui" style="border-color:#ffcc00; color:#ffcc00;" onclick="openGalleryMgmt()">edit gallery</button>` : ''}</div><div id="solo-gallery-area">${galH}</div></div>
                 </div>
             </div>`;
+        updateFloatingUI();
     }
 
     function openGalleryMgmt() {
+        const m = document.getElementById('gallery-mgmt-modal');
         const fL = document.getElementById('gallery-folder-list'); fL.innerHTML = ''; (currentlyViewedChar.galleryFolders || []).forEach(f => addGalleryFolderField(f));
-        document.getElementById('gallery-mgmt-modal').style.display = 'flex';
+        m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0;
     }
     function addGalleryFolderField(val = '') { const div = document.createElement('div'); div.className = 'mgmt-input-row'; div.style.display='flex'; div.style.gap='5px'; div.innerHTML = `<input type="text" class="mgmt-input g-folder-name" value="${val}"><button class="char-btn-ui" style="background:red" onclick="this.parentElement.remove()">X</button>`; document.getElementById('gallery-folder-list').appendChild(div); }
     function openImageEditModal(idx) {
-        imageEditIdx = idx; const target = document.getElementById('single-image-form-target');
+        imageEditIdx = idx; const m = document.getElementById('image-single-mgmt-modal'); const target = document.getElementById('single-image-form-target');
         document.getElementById('image-edit-title').innerText = idx === -1 ? "เพิ่มรูปภาพใหม่" : "แก้ไขรูปภาพ";
         let img = (idx === -1) ? { url: "", folder: "", artist: "", artistLink: "", usage: "" } : currentlyViewedChar.gallery[idx];
         let fOptions = `<option value="">(ไม่มีโฟลเดอร์)</option>`;
         const uniqueFolders = [...new Set([...(Array.from(document.querySelectorAll('.g-folder-name')).map(i => i.value.trim()).filter(v => v)), ...(currentlyViewedChar.galleryFolders || [])])];
         uniqueFolders.forEach(fname => { fOptions += `<option value="${fname}" ${fname === img.folder ? 'selected' : ''}>${fname}</option>`; });
         target.innerHTML = `<div class="mgmt-input-row"><label class="mgmt-label">Drive ID</label><input type="text" id="s-g-url" class="mgmt-input" value="${img.url}" oninput="this.value = extractDriveId(this.value)"></div><div class="mgmt-input-row"><label class="mgmt-label">ศิลปิน</label><input type="text" id="s-g-artist" class="mgmt-input" value="${img.artist || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">ลิงก์ศิลปิน</label><input type="text" id="s-g-link" class="mgmt-input" value="${img.artistLink || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">Usage</label><input type="text" id="s-g-usage" class="mgmt-input" value="${img.usage || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">เลือกโฟลเดอร์</label><select id="s-g-folder" class="mgmt-select">${fOptions}</select></div>${idx !== -1 ? `<button class="char-btn-ui" style="background:red; width:100%; margin-top:10px;" onclick="deleteSingleImage(${idx})">ลบรูปภาพนี้</button>` : ''}`;
-        document.getElementById('image-single-mgmt-modal').style.display = 'flex';
+        m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0;
     }
     function saveSingleImageEdit() {
         const url = document.getElementById('s-g-url').value.trim(); if(!url) return alert("กรุณาใส่ Drive ID");
@@ -717,22 +749,22 @@
     function closeLightbox() { document.body.classList.remove('lb-open'); document.getElementById('lightbox-modal').style.display = 'none'; }
     function changeLightboxImage(dir) { currentImageIndex += dir; if (currentImageIndex < 0) currentImageIndex = currentGalleryImages.length - 1; if (currentImageIndex >= currentGalleryImages.length) currentImageIndex = 0; openLightbox(currentImageIndex); }
 
-    function openCreditMgmt() { document.getElementById('credit-artist-input').value = currentlyViewedChar.artist || ""; document.getElementById('credit-link-input').value = currentlyViewedChar.artistLink || ""; document.getElementById('design-value-input').value = currentlyViewedChar.designValue || ""; document.getElementById('design-usage-input').value = currentlyViewedChar.designUsage || "Personal"; document.getElementById('credit-mgmt-modal').style.display = 'flex'; }
+    function openCreditMgmt() { const m = document.getElementById('credit-mgmt-modal'); document.getElementById('credit-artist-input').value = currentlyViewedChar.artist || ""; document.getElementById('credit-link-input').value = currentlyViewedChar.artistLink || ""; document.getElementById('design-value-input').value = currentlyViewedChar.designValue || ""; document.getElementById('design-usage-input').value = currentlyViewedChar.designUsage || "Personal"; m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0; }
     function saveCreditAndDesignMgmt() { currentlyViewedChar.artist = document.getElementById('credit-artist-input').value.trim(); currentlyViewedChar.artistLink = document.getElementById('credit-link-input').value.trim(); currentlyViewedChar.designValue = document.getElementById('design-value-input').value.trim(); currentlyViewedChar.designUsage = document.getElementById('design-usage-input').value; document.getElementById('credit-mgmt-modal').style.display = 'none'; syncData(); showSoloViewActual(); }
-    function openBasicInfoMgmt() { const l = document.getElementById('basic-info-input-list'); l.innerHTML = ''; (currentlyViewedChar.basicInfo || []).forEach(info => addBasicInfoField(info.key, info.value)); if((currentlyViewedChar.basicInfo || []).length === 0) addBasicInfoField(); document.getElementById('basic-info-mgmt-modal').style.display = 'flex'; }
+    function openBasicInfoMgmt() { const m = document.getElementById('basic-info-mgmt-modal'); const l = document.getElementById('basic-info-input-list'); l.innerHTML = ''; (currentlyViewedChar.basicInfo || []).forEach(info => addBasicInfoField(info.key, info.value)); if((currentlyViewedChar.basicInfo || []).length === 0) addBasicInfoField(); m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0; }
     function addBasicInfoField(k='', v='') { const div = document.createElement('div'); div.className = 'mgmt-input-row'; div.style.display = 'flex'; div.style.gap = '5px'; div.innerHTML = `<input type="text" class="mgmt-input b-key" placeholder="หัวข้อ" value="${k}" style="flex:1"><input type="text" class="mgmt-input b-val" placeholder="ข้อมูล" value="${v}" style="flex:2"><button class="char-btn-ui" style="background:red" onclick="this.parentElement.remove()">X</button>`; document.getElementById('basic-info-input-list').appendChild(div); }
     function saveBasicInfoMgmt() { const keys = document.querySelectorAll('.b-key'), vals = document.querySelectorAll('.b-val'); let data = []; keys.forEach((k, i) => { if(k.value.trim()) data.push({key: k.value.trim(), value: vals[i].value.trim()}); }); currentlyViewedChar.basicInfo = data; document.getElementById('basic-info-mgmt-modal').style.display = 'none'; syncData(); showSoloViewActual(); }
     function showDesignRules(id) { if(!id) return alert("ไม่มีรูปภาพกฎ"); document.getElementById('rules-display-img').src = `https://lh3.googleusercontent.com/u/0/d/${id}`; document.getElementById('rules-view-modal').style.display = 'flex'; }
-    function openRulesIdMgmt() { document.getElementById('rules-id-input').value = currentlyViewedChar.rulesImg || ""; document.getElementById('rules-id-mgmt-modal').style.display = 'flex'; }
+    function openRulesIdMgmt() { const m = document.getElementById('rules-id-mgmt-modal'); document.getElementById('rules-id-input').value = currentlyViewedChar.rulesImg || ""; m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0; }
     function saveRulesIdMgmt() { currentlyViewedChar.rulesImg = document.getElementById('rules-id-input').value.trim(); document.getElementById('rules-id-mgmt-modal').style.display = 'none'; syncData(); showSoloViewActual(); }
     function saveSoloBio() { currentlyViewedChar.bio = document.getElementById('solo-bio-input').value.trim(); syncData(); alert("Saved bio!"); showSoloViewActual(); }
     function closeSoloView() { document.getElementById('page-char-solo').style.display = 'none'; document.getElementById('char-main-list').style.display = 'block'; renderView(); }
 
-    function openProfileMgmt() { document.getElementById('p-mgmt-name').value = rootData.profile.name; document.getElementById('p-mgmt-bio').value = rootData.profile.bio; document.getElementById('p-mgmt-pfp').value = rootData.profile.pfp.startsWith('data:') ? "" : rootData.profile.pfp; document.getElementById('p-mgmt-frame').value = rootData.profile.frame.startsWith('data:') ? "" : rootData.profile.frame; document.getElementById('profile-mgmt-modal').style.display = 'flex'; }
+    function openProfileMgmt() { const m = document.getElementById('profile-mgmt-modal'); document.getElementById('p-mgmt-name').value = rootData.profile.name; document.getElementById('p-mgmt-bio').value = rootData.profile.bio; document.getElementById('p-mgmt-pfp').value = rootData.profile.pfp.startsWith('data:') ? "" : rootData.profile.pfp; document.getElementById('p-mgmt-frame').value = rootData.profile.frame.startsWith('data:') ? "" : rootData.profile.frame; m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0; }
     function saveProfileMgmt() { rootData.profile.name = document.getElementById('p-mgmt-name').value.trim() || "Dominic"; rootData.profile.bio = document.getElementById('p-mgmt-bio').value.trim(); rootData.profile.pfp = document.getElementById('p-mgmt-pfp').value.trim() || NEW_DEFAULT_IMG; rootData.profile.frame = document.getElementById('p-mgmt-frame').value.trim() || ROSE_FRAME_ID; document.getElementById('profile-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
-    function openFolderMgmt(idx) { folderEditIdx = idx; if (idx === -1) { document.getElementById('mgmt-name-input').value = ""; document.getElementById('mgmt-img-input').value = ""; document.getElementById('mgmt-display-style').value = "normal"; } else { const f = getCurrentFolder().subFolders[idx]; document.getElementById('mgmt-name-input').value = f.name; document.getElementById('mgmt-img-input').value = f.coverImg || ""; document.getElementById('mgmt-display-style').value = f.displayStyle || "normal"; } document.getElementById('folder-mgmt-modal').style.display = 'flex'; }
+    function openFolderMgmt(idx) { folderEditIdx = idx; const m = document.getElementById('folder-mgmt-modal'); if (idx === -1) { document.getElementById('mgmt-name-input').value = ""; document.getElementById('mgmt-img-input').value = ""; document.getElementById('mgmt-display-style').value = "normal"; } else { const f = getCurrentFolder().subFolders[idx]; document.getElementById('mgmt-name-input').value = f.name; document.getElementById('mgmt-img-input').value = f.coverImg || ""; document.getElementById('mgmt-display-style').value = f.displayStyle || "normal"; } m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0; }
     function saveFolderMgmt() { const n = document.getElementById('mgmt-name-input').value.trim(), i = document.getElementById('mgmt-img-input').value.trim(), d = document.getElementById('mgmt-display-style').value, cur = getCurrentFolder(); if (!n) return; if (folderEditIdx === -1) cur.subFolders.push({ name: n, coverImg: i, displayStyle: d, subFolders: [], characters: [], description: "" }); else { let f = cur.subFolders[folderEditIdx]; f.name = n; f.coverImg = i; f.displayStyle = d; } document.getElementById('folder-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
-    function openDescMgmt() { document.getElementById('mgmt-desc-input').value = getCurrentFolder().description || ""; document.getElementById('desc-mgmt-modal').style.display = 'flex'; }
+    function openDescMgmt() { const m = document.getElementById('desc-mgmt-modal'); document.getElementById('mgmt-desc-input').value = getCurrentFolder().description || ""; m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0; }
     function saveFolderDesc() { getCurrentFolder().description = document.getElementById('mgmt-desc-input').value; document.getElementById('desc-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
     function getFolderOptions(f, p, l) { l.push({ name: f.name, path: [...p] }); f.subFolders.forEach((s, idx) => getFolderOptions(s, [...p, idx], l)); }
     function toggleCWSecondaryInput() { document.getElementById('c-mgmt-secondary-wrap').style.display = document.getElementById('c-mgmt-cw').checked ? 'block' : 'none'; }
@@ -746,7 +778,7 @@
     function deleteCharByRef(char) { const info = findParentFolderInfo(rootData, char); if (!info) return; if(confirm("ลบตัวละครนี้?")) { info.folder.characters.splice(info.index, 1); syncData(); renderView(); closeSoloView(); } }
 
     function openCharMgmt(idx) {
-        charEditIdx = idx; const select = document.getElementById('c-mgmt-folder'); select.innerHTML = ''; const options = []; getFolderOptions(rootData, [], options);
+        charEditIdx = idx; const m = document.getElementById('char-mgmt-modal'); const select = document.getElementById('c-mgmt-folder'); select.innerHTML = ''; const options = []; getFolderOptions(rootData, [], options);
         options.forEach(o => { const el = document.createElement('option'); el.value = JSON.stringify(o.path); el.innerText = o.name + (o.path.length === 0 ? " (Root)" : ""); if (JSON.stringify(o.path) === JSON.stringify(currentPath)) el.selected = true; select.appendChild(el); });
         const tagL = document.getElementById('c-mgmt-tag-list'); tagL.innerHTML = ''; let curTags = [];
         if (idx !== -1) { 
@@ -758,7 +790,7 @@
         }
         toggleCWSecondaryInput();
         TAG_OPTIONS.forEach(t => { const d = document.createElement('label'); d.className = 'mgmt-tag-item'; d.innerHTML = `<input type="checkbox" name="char-tag-cb" value="${t}" ${curTags.includes(t) ? 'checked' : ''}> ${t}`; tagL.appendChild(d); });
-        document.getElementById('char-mgmt-modal').style.display = 'flex';
+        m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0;
     }
 
     function saveCharMgmt() {
