@@ -23,16 +23,13 @@
             display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden;
         }
 
-        /* ล็อกพื้นหลังให้นิ่งสนิท ไม่เลื่อนตามของในเว็บ */
+        /* ล็อกพื้นหลังให้นิ่งสนิท ไม่ยืดตามของในเว็บ */
         body::before {
             content: "";
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
             background: linear-gradient(180deg, #000000 0%, #000000 50%, var(--bg-bottom) 100%);
-            background-size: cover;
             z-index: -10;
             pointer-events: none;
         }
@@ -366,7 +363,7 @@
     </div>
 </div>
 
-<!-- Modal: Gallery Mgmt (หลัก - เหลือแค่โฟลเดอร์และปุ่มเพิ่มภาพ) -->
+<!-- Modal: Gallery Mgmt -->
 <div id="gallery-mgmt-modal" class="modal-overlay" onclick="this.style.display='none'">
     <div class="modal-content" style="width: 550px;" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="document.getElementById('gallery-mgmt-modal').style.display='none'">&times;</span>
@@ -384,7 +381,7 @@
     </div>
 </div>
 
-<!-- Modal: Single Image Edit (ใช้สำหรับแก้ไขรูปทีละรูป หรือเพิ่มรูปใหม่) -->
+<!-- Modal: Single Image Edit -->
 <div id="image-single-mgmt-modal" class="modal-overlay" onclick="this.style.display='none'">
     <div class="modal-content" style="width: 450px;" onclick="event.stopPropagation()">
         <span class="modal-close" onclick="document.getElementById('image-single-mgmt-modal').style.display='none'">&times;</span>
@@ -469,7 +466,7 @@
         profile: { name: "Dominic", bio: "welcome to my character folders ♡", pfp: NEW_DEFAULT_IMG, frame: ROSE_FRAME_ID }
     };
     let currentPath = [], viewMode = 'folder', activeTags = [], isAdmin = false, adminPassInBase = "1234", folderEditIdx = -1, charEditIdx = -1, termsAccepted = false, currentlyViewedChar = null, pendingCWChar = null, currentGalleryImages = [], currentImageIndex = 0;
-    let imageEditIdx = -1; // สำหรับติดตามว่ากำลังแก้ไขรูป index ไหน
+    let imageEditIdx = -1;
 
     function extractDriveId(value) {
         if (!value) return "";
@@ -557,17 +554,13 @@
             collect(rootData, charsToRender);
         }
 
-        // กรองตามหมวดหมู่ (Multi-select)
         if (activeTags.length > 0) {
             charsToRender = charsToRender.filter(c => {
                 const cTags = Array.isArray(c.tags) ? c.tags : [c.tag];
                 return activeTags.every(t => cTags.includes(t));
             });
         }
-
-        // เรียงลำดับตามตัวอักษร
         charsToRender.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
-
         renderCharGrid(charsToRender, charCols);
     }
 
@@ -575,18 +568,10 @@
         const isMobile = window.innerWidth < 768;
         chars.forEach((char) => {
             const card = document.createElement('div'); card.className = 'char-card';
-            
-            // นำปุ่มแก้ไขออกจากหน้า Grid เพื่อย้ายไปไว้ข้างในแทน
-            let adminHtml = "";
-            
-            card.innerHTML = `<div class="char-frame-wrap" onclick="openPopDetails(${JSON.stringify(char).replace(/"/g, '&quot;')})"><img class="char-frame-img" src="${char.frame ? `https://lh3.googleusercontent.com/u/0/d/${char.frame}` : ROSE_FRAME_ID}"><img class="char-thumb" src="${char.img.startsWith('data:') ? char.img : `https://lh3.googleusercontent.com/u/0/d/${char.img}`}" loading="lazy"></div><div class="char-name-label">${char.name}</div>${adminHtml}`;
-            
+            card.innerHTML = `<div class="char-frame-wrap" onclick='openPopDetails(${JSON.stringify(char).replace(/'/g, "&apos;")})'><img class="char-frame-img" src="${char.frame ? `https://lh3.googleusercontent.com/u/0/d/${char.frame}` : ROSE_FRAME_ID}"><img class="char-thumb" src="${char.img.startsWith('data:') ? char.img : `https://lh3.googleusercontent.com/u/0/d/${char.img}`}" loading="lazy"></div><div class="char-name-label">${char.name}</div>`;
             let targetCol;
-            if (isMobile) {
-                targetCol = cols[0].childElementCount <= cols[1].childElementCount ? cols[0] : cols[1];
-            } else {
-                targetCol = cols.reduce((p, c) => p.childElementCount <= c.childElementCount ? p : c);
-            }
+            if (isMobile) targetCol = cols[0].childElementCount <= cols[1].childElementCount ? cols[0] : cols[1];
+            else targetCol = cols.reduce((p, c) => p.childElementCount <= c.childElementCount ? p : c);
             targetCol.appendChild(card);
         });
     }
@@ -619,9 +604,7 @@
                 activeTags.push(tag);
                 btn.classList.add('active');
             }
-            if (activeTags.length === 0) {
-                document.querySelector('.category-bar .filter-btn[data-tag="All"]').classList.add('active');
-            }
+            if (activeTags.length === 0) document.querySelector('.category-bar .filter-btn[data-tag="All"]').classList.add('active');
         }
         renderView();
     }
@@ -629,7 +612,12 @@
     function copyCharLink(name) { const url = new URL(window.location.href); url.searchParams.set('c', name); navigator.clipboard.writeText(url.toString()).then(() => alert('คัดลอกลิงก์ตัวละครเรียบร้อยแล้ว!')); }
 
     function openPopDetails(char) {
-        const findRef = (f) => { let res = f.characters.find(c => c.img === char.img && c.name === char.name); if (res) return res; for (let s of f.subFolders) { res = findRef(s); if (res) return res; } return null; };
+        const findRef = (f) => { 
+            let res = f.characters.find(c => c.name === char.name && (c.img === char.img || c.img === NEW_DEFAULT_IMG)); 
+            if (res) return res; 
+            for (let s of f.subFolders) { res = findRef(s); if (res) return res; } 
+            return null; 
+        };
         currentlyViewedChar = findRef(rootData) || char;
         if (currentlyViewedChar.isCW && !isAdmin) { pendingCWChar = currentlyViewedChar; document.getElementById('cw-overlay').style.display = 'flex'; return; }
         showSoloViewActual();
@@ -698,58 +686,34 @@
         const fL = document.getElementById('gallery-folder-list'); fL.innerHTML = ''; (currentlyViewedChar.galleryFolders || []).forEach(f => addGalleryFolderField(f));
         document.getElementById('gallery-mgmt-modal').style.display = 'flex';
     }
-
     function addGalleryFolderField(val = '') { const div = document.createElement('div'); div.className = 'mgmt-input-row'; div.style.display='flex'; div.style.gap='5px'; div.innerHTML = `<input type="text" class="mgmt-input g-folder-name" value="${val}"><button class="char-btn-ui" style="background:red" onclick="this.parentElement.remove()">X</button>`; document.getElementById('gallery-folder-list').appendChild(div); }
-
     function openImageEditModal(idx) {
-        imageEditIdx = idx;
-        const target = document.getElementById('single-image-form-target');
+        imageEditIdx = idx; const target = document.getElementById('single-image-form-target');
         document.getElementById('image-edit-title').innerText = idx === -1 ? "เพิ่มรูปภาพใหม่" : "แก้ไขรูปภาพ";
         let img = (idx === -1) ? { url: "", folder: "", artist: "", artistLink: "", usage: "" } : currentlyViewedChar.gallery[idx];
         let fOptions = `<option value="">(ไม่มีโฟลเดอร์)</option>`;
-        const folders = Array.from(document.querySelectorAll('.g-folder-name')).map(i => i.value.trim()).filter(v => v);
-        const currentFolders = currentlyViewedChar.galleryFolders || [];
-        const uniqueFolders = [...new Set([...folders, ...currentFolders])];
+        const uniqueFolders = [...new Set([...(Array.from(document.querySelectorAll('.g-folder-name')).map(i => i.value.trim()).filter(v => v)), ...(currentlyViewedChar.galleryFolders || [])])];
         uniqueFolders.forEach(fname => { fOptions += `<option value="${fname}" ${fname === img.folder ? 'selected' : ''}>${fname}</option>`; });
         target.innerHTML = `<div class="mgmt-input-row"><label class="mgmt-label">Drive ID</label><input type="text" id="s-g-url" class="mgmt-input" value="${img.url}" oninput="this.value = extractDriveId(this.value)"></div><div class="mgmt-input-row"><label class="mgmt-label">ศิลปิน</label><input type="text" id="s-g-artist" class="mgmt-input" value="${img.artist || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">ลิงก์ศิลปิน</label><input type="text" id="s-g-link" class="mgmt-input" value="${img.artistLink || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">Usage</label><input type="text" id="s-g-usage" class="mgmt-input" value="${img.usage || ''}"></div><div class="mgmt-input-row"><label class="mgmt-label">เลือกโฟลเดอร์</label><select id="s-g-folder" class="mgmt-select">${fOptions}</select></div>${idx !== -1 ? `<button class="char-btn-ui" style="background:red; width:100%; margin-top:10px;" onclick="deleteSingleImage(${idx})">ลบรูปภาพนี้</button>` : ''}`;
         document.getElementById('image-single-mgmt-modal').style.display = 'flex';
     }
-
     function saveSingleImageEdit() {
-        const url = document.getElementById('s-g-url').value.trim();
-        if(!url) return alert("กรุณาใส่ Drive ID");
+        const url = document.getElementById('s-g-url').value.trim(); if(!url) return alert("กรุณาใส่ Drive ID");
         const imgData = { url: url, artist: document.getElementById('s-g-artist').value.trim(), artistLink: document.getElementById('s-g-link').value.trim(), usage: document.getElementById('s-g-usage').value.trim(), folder: document.getElementById('s-g-folder').value };
         if(!currentlyViewedChar.gallery) currentlyViewedChar.gallery = [];
-        if(imageEditIdx === -1) { currentlyViewedChar.gallery.push(imgData); } else { currentlyViewedChar.gallery[imageEditIdx] = imgData; }
-        document.getElementById('image-single-mgmt-modal').style.display = 'none';
-        syncData(); showSoloViewActual();
+        if(imageEditIdx === -1) currentlyViewedChar.gallery.push(imgData); else currentlyViewedChar.gallery[imageEditIdx] = imgData;
+        document.getElementById('image-single-mgmt-modal').style.display = 'none'; syncData(); showSoloViewActual();
     }
-
-    function deleteSingleImage(idx) {
-        if(confirm("ต้องการลบรูปภาพนี้ใช่หรือไม่?")) {
-            currentlyViewedChar.gallery.splice(idx, 1);
-            document.getElementById('image-single-mgmt-modal').style.display = 'none';
-            syncData(); showSoloViewActual();
-        }
-    }
-
-    function saveGalleryFoldersOnly() {
-        currentlyViewedChar.galleryFolders = Array.from(document.querySelectorAll('.g-folder-name')).map(i => i.value.trim()).filter(v => v);
-        document.getElementById('gallery-mgmt-modal').style.display = 'none';
-        syncData(); showSoloViewActual();
-    }
-
+    function deleteSingleImage(idx) { if(confirm("ต้องการลบรูปภาพนี้ใช่หรือไม่?")) { currentlyViewedChar.gallery.splice(idx, 1); document.getElementById('image-single-mgmt-modal').style.display = 'none'; syncData(); showSoloViewActual(); } }
+    function saveGalleryFoldersOnly() { currentlyViewedChar.galleryFolders = Array.from(document.querySelectorAll('.g-folder-name')).map(i => i.value.trim()).filter(v => v); document.getElementById('gallery-mgmt-modal').style.display = 'none'; syncData(); showSoloViewActual(); }
     function openLightbox(idx) {
-        currentImageIndex = idx; const img = currentGalleryImages[idx], char = currentlyViewedChar;
-        const target = document.getElementById('lightbox-img-target'), artN = document.getElementById('lb-artist-name'), useT = document.getElementById('lb-usage-text'), bar = document.getElementById('lb-info-bar');
+        currentImageIndex = idx; const img = currentGalleryImages[idx], target = document.getElementById('lightbox-img-target'), artN = document.getElementById('lb-artist-name'), useT = document.getElementById('lb-usage-text'), bar = document.getElementById('lb-info-bar');
         target.src = `https://lh3.googleusercontent.com/u/0/d/${img.url}`;
-        let aV = img.artist, aL = img.artistLink, uV = img.usage;
-        if (aV) { artN.innerHTML = aL ? `<a href="${aL}" target="_blank">${aV}</a>` : aV; artN.parentElement.style.display = 'block'; } else { artN.parentElement.style.display = 'none'; }
-        if (uV) { useT.innerText = uV; useT.parentElement.style.display = 'block'; } else { useT.parentElement.style.display = 'none'; }
-        bar.style.display = (!aV && !uV) ? 'none' : 'flex';
-        document.body.classList.add('lb-open'); document.getElementById('lightbox-modal').style.display = 'flex'; document.getElementById('lightbox-modal').scrollTop = 0;
+        if (img.artist) { artN.innerHTML = img.artistLink ? `<a href="${img.artistLink}" target="_blank">${img.artist}</a>` : img.artist; artN.parentElement.style.display = 'block'; } else artN.parentElement.style.display = 'none';
+        if (img.usage) { useT.innerText = img.usage; useT.parentElement.style.display = 'block'; } else useT.parentElement.style.display = 'none';
+        bar.style.display = (!img.artist && !img.usage) ? 'none' : 'flex';
+        document.body.classList.add('lb-open'); document.getElementById('lightbox-modal').style.display = 'flex';
     }
-
     function closeLightbox() { document.body.classList.remove('lb-open'); document.getElementById('lightbox-modal').style.display = 'none'; }
     function changeLightboxImage(dir) { currentImageIndex += dir; if (currentImageIndex < 0) currentImageIndex = currentGalleryImages.length - 1; if (currentImageIndex >= currentGalleryImages.length) currentImageIndex = 0; openLightbox(currentImageIndex); }
 
@@ -767,39 +731,59 @@
     function openProfileMgmt() { document.getElementById('p-mgmt-name').value = rootData.profile.name; document.getElementById('p-mgmt-bio').value = rootData.profile.bio; document.getElementById('p-mgmt-pfp').value = rootData.profile.pfp.startsWith('data:') ? "" : rootData.profile.pfp; document.getElementById('p-mgmt-frame').value = rootData.profile.frame.startsWith('data:') ? "" : rootData.profile.frame; document.getElementById('profile-mgmt-modal').style.display = 'flex'; }
     function saveProfileMgmt() { rootData.profile.name = document.getElementById('p-mgmt-name').value.trim() || "Dominic"; rootData.profile.bio = document.getElementById('p-mgmt-bio').value.trim(); rootData.profile.pfp = document.getElementById('p-mgmt-pfp').value.trim() || NEW_DEFAULT_IMG; rootData.profile.frame = document.getElementById('p-mgmt-frame').value.trim() || ROSE_FRAME_ID; document.getElementById('profile-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
     function openFolderMgmt(idx) { folderEditIdx = idx; if (idx === -1) { document.getElementById('mgmt-name-input').value = ""; document.getElementById('mgmt-img-input').value = ""; document.getElementById('mgmt-display-style').value = "normal"; } else { const f = getCurrentFolder().subFolders[idx]; document.getElementById('mgmt-name-input').value = f.name; document.getElementById('mgmt-img-input').value = f.coverImg || ""; document.getElementById('mgmt-display-style').value = f.displayStyle || "normal"; } document.getElementById('folder-mgmt-modal').style.display = 'flex'; }
-    function saveFolderMgmt() { const n = document.getElementById('mgmt-name-input').value.trim(), i = document.getElementById('mgmt-img-input').value.trim() || NEW_DEFAULT_IMG, f = document.getElementById('mgmt-frame').value.trim() || ROSE_FRAME_ID, isCW = document.getElementById('c-mgmt-cw').checked, si = document.getElementById('c-mgmt-secondary-img').value.trim(), targetP = JSON.parse(document.getElementById('c-mgmt-folder').value || "[]"), tags = Array.from(document.querySelectorAll('input[name="char-tag-cb"]:checked')).map(x => x.value);
+    function saveFolderMgmt() { const n = document.getElementById('mgmt-name-input').value.trim(), i = document.getElementById('mgmt-img-input').value.trim(), d = document.getElementById('mgmt-display-style').value, cur = getCurrentFolder(); if (!n) return; if (folderEditIdx === -1) cur.subFolders.push({ name: n, coverImg: i, displayStyle: d, subFolders: [], characters: [], description: "" }); else { let f = cur.subFolders[folderEditIdx]; f.name = n; f.coverImg = i; f.displayStyle = d; } document.getElementById('folder-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
+    function openDescMgmt() { document.getElementById('mgmt-desc-input').value = getCurrentFolder().description || ""; document.getElementById('desc-mgmt-modal').style.display = 'flex'; }
+    function saveFolderDesc() { getCurrentFolder().description = document.getElementById('mgmt-desc-input').value; document.getElementById('desc-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
+    function getFolderOptions(f, p, l) { l.push({ name: f.name, path: [...p] }); f.subFolders.forEach((s, idx) => getFolderOptions(s, [...p, idx], l)); }
+    function toggleCWSecondaryInput() { document.getElementById('c-mgmt-secondary-wrap').style.display = document.getElementById('c-mgmt-cw').checked ? 'block' : 'none'; }
+
+    function findParentFolderInfo(folder, char, path = []) {
+        let idx = folder.characters.indexOf(char); if (idx !== -1) return { folder, index: idx, path };
+        for (let i = 0; i < folder.subFolders.length; i++) { let res = findParentFolderInfo(folder.subFolders[i], char, [...path, i]); if (res) return res; }
+        return null;
+    }
+    function openCharMgmtByRef(char) { const info = findParentFolderInfo(rootData, char); if (!info) return; currentPath = info.path; openCharMgmt(info.index); }
+    function deleteCharByRef(char) { const info = findParentFolderInfo(rootData, char); if (!info) return; if(confirm("ลบตัวละครนี้?")) { info.folder.characters.splice(info.index, 1); syncData(); renderView(); closeSoloView(); } }
+
+    function openCharMgmt(idx) {
+        charEditIdx = idx; const select = document.getElementById('c-mgmt-folder'); select.innerHTML = ''; const options = []; getFolderOptions(rootData, [], options);
+        options.forEach(o => { const el = document.createElement('option'); el.value = JSON.stringify(o.path); el.innerText = o.name + (o.path.length === 0 ? " (Root)" : ""); if (JSON.stringify(o.path) === JSON.stringify(currentPath)) el.selected = true; select.appendChild(el); });
+        const tagL = document.getElementById('c-mgmt-tag-list'); tagL.innerHTML = ''; let curTags = [];
+        if (idx !== -1) { 
+            const c = getCurrentFolder().characters[idx]; curTags = Array.isArray(c.tags) ? c.tags : [c.tag]; document.getElementById('c-mgmt-name').value = c.name; 
+            document.getElementById('c-mgmt-img').value = c.img.startsWith('data:') ? "" : c.img; document.getElementById('c-mgmt-frame').value = c.frame.startsWith('data:') ? "" : c.frame; 
+            document.getElementById('c-mgmt-cw').checked = c.isCW || false; document.getElementById('c-mgmt-secondary-img').value = c.secondaryImg || ""; 
+        } else { 
+            document.getElementById('c-mgmt-name').value = ""; document.getElementById('c-mgmt-img').value = ""; document.getElementById('c-mgmt-frame').value = ""; document.getElementById('c-mgmt-cw').checked = false; document.getElementById('c-mgmt-secondary-img').value = ""; 
+        }
+        toggleCWSecondaryInput();
+        TAG_OPTIONS.forEach(t => { const d = document.createElement('label'); d.className = 'mgmt-tag-item'; d.innerHTML = `<input type="checkbox" name="char-tag-cb" value="${t}" ${curTags.includes(t) ? 'checked' : ''}> ${t}`; tagL.appendChild(d); });
+        document.getElementById('char-mgmt-modal').style.display = 'flex';
+    }
+
+    function saveCharMgmt() {
+        const n = document.getElementById('c-mgmt-name').value.trim(), i = document.getElementById('c-mgmt-img').value.trim() || NEW_DEFAULT_IMG, f = document.getElementById('c-mgmt-frame').value.trim() || ROSE_FRAME_ID, isCW = document.getElementById('c-mgmt-cw').checked, si = document.getElementById('c-mgmt-secondary-img').value.trim(), targetP = JSON.parse(document.getElementById('c-mgmt-folder').value || "[]"), tags = Array.from(document.querySelectorAll('input[name="char-tag-cb"]:checked')).map(x => x.value);
         if (!n) return alert("ใส่ชื่อตัวละคร");
         let targetF = rootData; for (let idx of targetP) targetF = targetF.subFolders[idx];
         const currentF = getCurrentFolder(); 
         let charO = (charEditIdx === -1) ? { artist: "", bio: "", artistLink: "", rulesImg: "", designValue: "", designUsage: "Personal", basicInfo: [], gallery: [], galleryFolders: [] } : currentF.characters[charEditIdx];
         charO.name = n; charO.img = i; charO.frame = f; charO.tags = tags; charO.tag = tags[0] || 'mascot'; charO.isCW = isCW; charO.secondaryImg = si;
         if (charEditIdx === -1) targetF.characters.push(charO); else if (JSON.stringify(targetP) !== JSON.stringify(currentPath)) { currentF.characters.splice(charEditIdx, 1); targetF.characters.push(charO); }
-        document.getElementById('char-mgmt-modal').style.display = 'none'; syncData(); renderView();
+        document.getElementById('char-mgmt-modal').style.display = 'none'; syncData(); renderView(); if(document.getElementById('page-char-solo').style.display === 'block') showSoloViewActual();
     }
 
     function triggerAdminLogin() { if(isAdmin) { isAdmin = false; document.body.classList.remove('is-admin-active'); document.getElementById('login-btn').innerText = "log in"; document.getElementById('admin-controls').style.display = 'none'; renderView(); } else document.getElementById('login-modal').style.display = 'flex'; }
     function verifyAdmin() { if(document.getElementById('admin-pass').value === adminPassInBase) { isAdmin = true; document.body.classList.add('is-admin-active'); document.getElementById('login-btn').innerText = "logout admin"; document.getElementById('admin-controls').style.display = 'flex'; document.getElementById('login-modal').style.display = 'none'; renderView(); } else alert("Wrong!"); }
     function deleteFolder(i) { if(confirm("ลบโฟลเดอร์นี้?")) { getCurrentFolder().subFolders.splice(i, 1); syncData(); renderView(); } }
-    function deleteChar(i) { if(confirm("ลบตัวละครนี้?")) { getCurrentFolder().characters.splice(i, 1); syncData(); renderView(); } }
     async function syncData() { await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "saveCharacterFolders", folderData: JSON.stringify(rootData), adminPass: adminPassInBase }) }); }
 
     function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
     window.addEventListener('scroll', () => { document.getElementById('scrollTopBtn').style.display = (window.scrollY > 300) ? 'flex' : 'none'; });
-
     const canvas = document.getElementById('snow-canvas'), ctx = canvas.getContext('2d'); let flakes = [];
     function initSnow() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; flakes = []; for(let i=0; i<50; i++) flakes.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, radius: Math.random()*2+1, speed: Math.random()*1+0.5, wind: Math.random()*0.5-0.25 }); }
     function drawSnow() { ctx.clearRect(0,0,canvas.width,canvas.height); flakes.forEach(f => { ctx.beginPath(); ctx.arc(f.x,f.y,f.radius,0,Math.PI*2); ctx.fillStyle="white"; ctx.shadowBlur=8; ctx.shadowColor="#D3BCE6"; ctx.fill(); f.y+=f.speed; f.x+=f.wind; if (f.y > canvas.height) { f.y=-5; f.x=Math.random()*canvas.width; } }); requestAnimationFrame(drawSnow); }
     window.addEventListener('resize', initSnow); initSnow(); drawSnow();
-    
-    window.addEventListener('mousedown', (e) => { 
-        const r = document.createElement('div'); 
-        r.className='ripple'; 
-        r.style.left = (e.clientX + window.scrollX) + 'px';
-        r.style.top = (e.clientY + window.scrollY) + 'px';
-        document.body.appendChild(r); 
-        r.addEventListener('animationend',()=>r.remove()); 
-    });
-    
+    window.addEventListener('mousedown', (e) => { const r = document.createElement('div'); r.className='ripple'; r.style.left = (e.clientX + window.scrollX) + 'px'; r.style.top = (e.clientY + window.scrollY) + 'px'; document.body.appendChild(r); r.addEventListener('animationend',()=>r.remove()); });
     loadData();
 </script>
 </body>
