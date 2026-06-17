@@ -2,8 +2,17 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=768, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Dominic - Character Folders</title>
+
+    <!-- Meta Tags สำหรับเปลี่ยนรูปภาพเวลาวางลิงก์ (Link Preview) -->
+    <meta property="og:title" content="Dominic - Character Folders">
+    <meta property="og:description" content="welcome to my character folders ♡">
+    <meta property="og:image" content="https://lh3.googleusercontent.com/u/0/d/1cB6DgaRmhZL1P9l2Pbga0MsSftKYb7-5">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://lh3.googleusercontent.com/u/0/d/1cB6DgaRmhZL1P9l2Pbga0MsSftKYb7-5">
+
     <!-- เปลี่ยนเป็นฟอนต์ Anuphan ที่ใช้งานเชิงพาณิชย์ได้และมีเส้นหลายน้ำหนัก -->
     <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@200;300;500;700&display=swap" rel="stylesheet">
     <style>
@@ -55,7 +64,7 @@
         }
         body.is-admin-active .watermark-tile { display: none !important; }
 
-        .ipad-layout { width: 768px; position: relative; display: flex; flex-direction: column; z-index: 1; }
+        .ipad-layout { width: 768px; max-width: 100%; position: relative; display: flex; flex-direction: column; z-index: 1; }
         .page-container { padding: 40px 60px 100px 60px; display: flex; flex-direction: column; width: 100%; }
 
         /* แก้ไขปุ่มยอมรับหน้าแรก */
@@ -64,7 +73,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px; /* เพิ่มช่องว่างเล็กน้อย */
+            gap: 15px; 
             padding: 15px 40px; 
             min-width: 320px; 
             background: white; 
@@ -82,7 +91,7 @@
             transition: transform 0.2s;
         }
         .accept-btn:active { transform: scale(0.96); }
-        .accept-btn img { width: 45px; height: 45px; object-fit: contain; } /* ปรับขนาดรูปภาพให้ใหญ่ขึ้น */
+        .accept-btn img { width: 45px; height: 45px; object-fit: contain; } 
 
         @keyframes btn-pulse {
             0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
@@ -247,11 +256,55 @@
         /* --- Mobile Adjustments --- */
         @media (max-width: 767px) {
             .ipad-layout { width: 100vw; }
-            .page-container { padding: 20px; }
-            .folder-grid, .char-grid, .solo-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; }
+            .page-container { padding: 20px 15px; } /* ปรับ Padding ให้เล็กลงหน่อยสำหรับจอเล็ก */
+            
+            /* ปรับส่วนหัวให้จัดตรงกลางและเป็นแนวตั้ง */
+            .owner-profile-wrap { 
+                flex-direction: column; 
+                text-align: center; 
+                padding: 20px; 
+                gap: 15px;
+            }
+            .owner-pfp-frame { width: 110px; height: 110px; }
+            .owner-info h2 { font-size: 24px; }
+            
+            /* ปรับกริดให้เหลือ 2 คอลัมน์ตามที่ขอ */
+            .folder-grid, .char-grid, .solo-gallery-grid { 
+                grid-template-columns: repeat(2, 1fr) !important; 
+                gap: 10px;
+            }
+            
             .display-col { display: contents; }
-            .char-card { margin-bottom: 15px; }
+            .char-card { margin-bottom: 10px; }
             .gallery-col { display: contents; }
+            
+            /* Solo View สำหรับมือถือ */
+            .solo-top-area { 
+                flex-direction: column; 
+                align-items: center; 
+                text-align: center; 
+                gap: 15px;
+            }
+            .solo-profile-box { flex-direction: column; }
+            .solo-credit-card { 
+                width: 100%; 
+                text-align: center; 
+                min-width: unset;
+            }
+            
+            /* ปรับ Breadcrumb ให้ดูง่ายขึ้น */
+            .breadcrumb-container { justify-content: center; font-size: 12px; }
+            
+            /* ปรับปุ่มยอมรับหน้าแรก */
+            .accept-btn { 
+                min-width: 80%; 
+                font-size: 18px;
+                padding: 12px 20px;
+            }
+            .accept-btn img { width: 35px; height: 35px; }
+
+            /* Modal ปรับความกว้างให้เต็มจอ */
+            .modal-content { width: 95% !important; padding: 25px 20px; }
         }
     </style>
 </head>
