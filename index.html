@@ -50,7 +50,7 @@
 
         /* --- ป้องกันรูปภาพ --- */
         img { -webkit-touch-callout: none !important; -webkit-user-drag: none !important; user-drag: none !important; pointer-events: none !important; }
-        .img-del-btn-float, .img-edit-btn, .admin-btn, .login-btn, .char-btn-ui, .save-btn, .modal-close, .lb-nav, .lb-close, .filter-btn, .accept-btn, .breadcrumb-item, .folder-item, .char-frame-wrap, .back-arrow, .lightbox-overlay, .cw-btn, .scroll-top-btn, .floating-back-btn {
+        .img-del-btn-float, .img-edit-btn, .admin-btn, .login-btn, .char-btn-ui, .save-btn, .modal-close, .lb-nav, .lb-close, .filter-btn, .accept-btn, .breadcrumb-item, .folder-item, .char-frame-wrap, .back-arrow, .lightbox-overlay, .cw-btn, .scroll-top-btn {
             pointer-events: auto !important;
         }
         body.is-admin-active * { -webkit-user-select: auto !important; user-select: auto !important; }
@@ -224,9 +224,6 @@
 
         /* Scroll Top Button */
         .scroll-top-btn { position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; background: var(--box-border); color: #000; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        
-        /* Floating Back Button */
-        .floating-back-btn { position: fixed; bottom: 30px; left: 30px; width: 45px; height: 45px; background: var(--box-border); color: #000; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; font-weight: 700; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 20px; }
 
         /* --- Toast Notification --- */
         .toast-msg {
@@ -256,54 +253,25 @@
         /* --- Mobile Adjustments --- */
         @media (max-width: 767px) {
             .ipad-layout { width: 100vw; }
-            .page-container { padding: 20px 15px; } /* ปรับ Padding ให้เล็กลงหน่อยสำหรับจอเล็ก */
+            .page-container { padding: 20px 15px; }
             
-            /* ปรับส่วนหัวให้จัดตรงกลางและเป็นแนวตั้ง */
-            .owner-profile-wrap { 
-                flex-direction: column; 
-                text-align: center; 
-                padding: 20px; 
-                gap: 15px;
-            }
+            .owner-profile-wrap { flex-direction: column; text-align: center; padding: 20px; gap: 15px; }
             .owner-pfp-frame { width: 110px; height: 110px; }
             .owner-info h2 { font-size: 24px; }
             
-            /* ปรับกริดให้เหลือ 2 คอลัมน์ตามที่ขอ */
-            .folder-grid, .char-grid, .solo-gallery-grid { 
-                grid-template-columns: repeat(2, 1fr) !important; 
-                gap: 10px;
-            }
+            .folder-grid, .char-grid, .solo-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
             
             .display-col { display: contents; }
             .char-card { margin-bottom: 10px; }
             .gallery-col { display: contents; }
             
-            /* Solo View สำหรับมือถือ */
-            .solo-top-area { 
-                flex-direction: column; 
-                align-items: center; 
-                text-align: center; 
-                gap: 15px;
-            }
+            .solo-top-area { flex-direction: column; align-items: center; text-align: center; gap: 15px; }
             .solo-profile-box { flex-direction: column; }
-            .solo-credit-card { 
-                width: 100%; 
-                text-align: center; 
-                min-width: unset;
-            }
+            .solo-credit-card { width: 100%; text-align: center; min-width: unset; }
             
-            /* ปรับ Breadcrumb ให้ดูง่ายขึ้น */
             .breadcrumb-container { justify-content: center; font-size: 12px; }
-            
-            /* ปรับปุ่มยอมรับหน้าแรก */
-            .accept-btn { 
-                min-width: 80%; 
-                font-size: 18px;
-                padding: 12px 20px;
-            }
+            .accept-btn { min-width: 80%; font-size: 18px; padding: 12px 20px; }
             .accept-btn img { width: 35px; height: 35px; }
-
-            /* Modal ปรับความกว้างให้เต็มจอ */
             .modal-content { width: 95% !important; padding: 25px 20px; }
         }
     </style>
@@ -322,7 +290,6 @@
 </div>
 
 <div class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()">↑</div>
-<div class="floating-back-btn" id="floatingBackBtn" onclick="handleFloatingBack()">←</div>
 
 <div id="toast-container" class="toast-msg">คัดลอกลิงก์สำเร็จ</div>
 
@@ -623,6 +590,37 @@
     let currentPath = [], viewMode = 'folder', activeTags = [], isAdmin = false, adminPassInBase = "1234", folderEditIdx = -1, charEditIdx = -1, termsAccepted = false, currentlyViewedChar = null, pendingCWChar = null, currentGalleryImages = [], currentImageIndex = 0;
     let imageEditIdx = -1;
 
+    // --- History Navigation System ---
+    function pushNavigationState(isSolo = false) {
+        const state = { 
+            path: [...currentPath], 
+            viewMode: viewMode, 
+            isSolo: isSolo, 
+            charName: isSolo && currentlyViewedChar ? currentlyViewedChar.name : null 
+        };
+        history.pushState(state, "");
+    }
+
+    window.onpopstate = function(event) {
+        if (event.state) {
+            currentPath = event.state.path || [];
+            viewMode = event.state.viewMode || 'folder';
+            if (event.state.isSolo && event.state.charName) {
+                const found = findCharacterInTree(rootData, event.state.charName);
+                if (found) {
+                    currentlyViewedChar = found;
+                    showSoloViewActual(false); // false means don't push state again
+                }
+            } else {
+                closeSoloView(false); // false means don't push state again
+            }
+        } else {
+            // Initial state
+            currentPath = [];
+            closeSoloView(false);
+        }
+    };
+
     function extractDriveId(value) {
         if (!value) return "";
         const match = value.match(/[-\w]{25,}/);
@@ -665,26 +663,15 @@
         return null;
     }
 
-    function acceptTerms() { termsAccepted = true; document.getElementById('page-char-terms').style.display = 'none'; document.getElementById('char-main-list').style.display = 'block'; renderView(); }
+    function acceptTerms() { 
+        termsAccepted = true; 
+        document.getElementById('page-char-terms').style.display = 'none'; 
+        document.getElementById('char-main-list').style.display = 'block'; 
+        history.replaceState({path: [], viewMode: 'folder', isSolo: false}, "");
+        renderView(); 
+    }
+    
     function getCurrentFolder() { let folder = rootData; for (let idx of currentPath) folder = folder.subFolders[idx]; return folder; }
-
-    function updateFloatingUI() {
-        const btn = document.getElementById('floatingBackBtn');
-        const isSolo = document.getElementById('page-char-solo').style.display === 'block';
-        if (isSolo || (viewMode === 'folder' && currentPath.length > 0)) {
-            btn.style.display = 'flex';
-        } else {
-            btn.style.display = 'none';
-        }
-    }
-
-    function handleFloatingBack() {
-        if (document.getElementById('page-char-solo').style.display === 'block') {
-            closeSoloView();
-        } else {
-            goBack();
-        }
-    }
 
     function renderView() {
         const folder = getCurrentFolder();
@@ -709,11 +696,11 @@
             folder.subFolders.forEach((sub, idx) => {
                 const fDiv = document.createElement('div');
                 if (sub.displayStyle === 'flat') {
-                    fDiv.className = 'folder-item'; fDiv.style.gridColumn = "1 / -1"; fDiv.style.display = "block"; fDiv.style.borderBottom = "1px solid rgba(255,255,255,0.2)"; fDiv.style.padding = "15px 0 5px 0"; fDiv.style.marginBottom = "5px"; fDiv.onclick = () => { currentPath.push(idx); activeTags = []; renderView(); };
+                    fDiv.className = 'folder-item'; fDiv.style.gridColumn = "1 / -1"; fDiv.style.display = "block"; fDiv.style.borderBottom = "1px solid rgba(255,255,255,0.2)"; fDiv.style.padding = "15px 0 5px 0"; fDiv.style.marginBottom = "5px"; fDiv.onclick = () => { currentPath.push(idx); activeTags = []; pushNavigationState(); renderView(); };
                     let adminH = isAdmin ? `<span style="float:right;"><span class="admin-mini-btn" onclick="event.stopPropagation(); openFolderMgmt(${idx})">edit</span><span class="admin-mini-btn" style="background:red" onclick="event.stopPropagation(); deleteFolder(${idx})">del</span></span>` : "";
                     fDiv.innerHTML = `<div class="folder-name" style="text-align:left; font-size:16px; margin:0; font-weight:700; display:inline-block;">${sub.name}</div>${adminH}${(sub.description) ? `<div style="font-size:12px; color:rgba(255,255,255,0.7); margin-top:4px; font-weight:300; text-align:left;">${sub.description}</div>` : ""}`;
                 } else {
-                    fDiv.className = 'folder-item'; fDiv.onclick = () => { currentPath.push(idx); activeTags = []; renderView(); };
+                    fDiv.className = 'folder-item'; fDiv.onclick = () => { currentPath.push(idx); activeTags = []; pushNavigationState(); renderView(); };
                     let adminH = isAdmin ? `<div style="position:absolute; top:5px; right:5px; z-index:10; display:flex; flex-direction:column; align-items:flex-end;"><span class="admin-mini-btn" onclick="event.stopPropagation(); openFolderMgmt(${idx})">edit</span><span class="admin-mini-btn" style="background:red" onclick="event.stopPropagation(); deleteFolder(${idx})">del</span></div>` : "";
                     fDiv.innerHTML = `<img src="${sub.coverImg ? `https://lh3.googleusercontent.com/u/0/d/${sub.coverImg}` : DEFAULT_FOLDER_ICON}" class="folder-icon" loading="lazy"><div class="folder-name">${sub.name}</div>${adminH}`;
                 }
@@ -742,7 +729,6 @@
         }
         charsToRender.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
         renderCharGrid(charsToRender, charCols);
-        updateFloatingUI();
     }
 
     function renderCharGrid(chars, cols) {
@@ -759,17 +745,26 @@
 
     function renderBreadcrumbs() {
         const bc = document.getElementById('breadcrumbs'); bc.innerHTML = '';
-        const homeBtn = document.createElement('span'); homeBtn.className = 'breadcrumb-item'; homeBtn.innerText = 'characters'; homeBtn.onclick = () => { currentPath = []; activeTags = []; renderView(); };
+        const homeBtn = document.createElement('span'); homeBtn.className = 'breadcrumb-item'; homeBtn.innerText = 'characters'; homeBtn.onclick = () => { currentPath = []; activeTags = []; pushNavigationState(); renderView(); };
         bc.appendChild(homeBtn);
         let tempPath = [], folder = rootData;
         currentPath.forEach((idx) => {
             bc.appendChild(document.createTextNode(' > ')); folder = folder.subFolders[idx]; tempPath.push(idx);
-            const btn = document.createElement('span'), targetPath = [...tempPath]; btn.className = 'breadcrumb-item'; btn.innerText = folder.name; btn.onclick = () => { currentPath = targetPath; activeTags = []; renderView(); }; bc.appendChild(btn);
+            const btn = document.createElement('span'), targetPath = [...tempPath]; btn.className = 'breadcrumb-item'; btn.innerText = folder.name; btn.onclick = () => { currentPath = targetPath; activeTags = []; pushNavigationState(); renderView(); }; bc.appendChild(btn);
         });
     }
 
-    function goBack() { if (currentPath.length > 0) { currentPath.pop(); activeTags = []; renderView(); } }
-    function setViewMode(mode) { viewMode = mode; document.getElementById('mode-folder').style.background = (mode === 'folder') ? 'var(--box-border)' : 'rgba(255,255,255,0.1)'; document.getElementById('mode-folder').style.color = (mode === 'folder') ? 'black' : 'white'; document.getElementById('mode-all').style.background = (mode === 'all') ? 'var(--box-border)' : 'rgba(255,255,255,0.1)'; document.getElementById('mode-all').style.color = (mode === 'all') ? 'black' : 'white'; renderView(); }
+    function goBack() { if (currentPath.length > 0) { history.back(); } }
+    
+    function setViewMode(mode) { 
+        viewMode = mode; 
+        document.getElementById('mode-folder').style.background = (mode === 'folder') ? 'var(--box-border)' : 'rgba(255,255,255,0.1)'; 
+        document.getElementById('mode-folder').style.color = (mode === 'folder') ? 'black' : 'white'; 
+        document.getElementById('mode-all').style.background = (mode === 'all') ? 'var(--box-border)' : 'rgba(255,255,255,0.1)'; 
+        document.getElementById('mode-all').style.color = (mode === 'all') ? 'black' : 'white'; 
+        pushNavigationState();
+        renderView(); 
+    }
     
     function setCategoryFilter(tag, btn) {
         if (tag === 'All') {
@@ -818,10 +813,13 @@
     function confirmCW() { document.getElementById('cw-overlay').style.display = 'none'; showSoloViewActual(); }
     function cancelCW() { document.getElementById('cw-overlay').style.display = 'none'; pendingCWChar = null; }
 
-    function showSoloViewActual() {
+    function showSoloViewActual(shouldPush = true) {
+        if (shouldPush) pushNavigationState(true);
         window.scrollTo(0, 0);
 
-        const char = currentlyViewedChar; document.getElementById('char-main-list').style.display = 'none'; document.getElementById('page-char-solo').style.display = 'block';
+        const char = currentlyViewedChar; 
+        document.getElementById('char-main-list').style.display = 'none'; 
+        document.getElementById('page-char-solo').style.display = 'block';
         const target = document.getElementById('solo-content-target');
         const listItems = (char.basicInfo || []).map(info => (info.key && info.value) ? `<li class="basic-info-item"><span class="basic-info-key">${info.key}</span><span class="basic-info-val">${info.value}</span></li>` : '').join('');
         currentGalleryImages = char.gallery || [];
@@ -874,7 +872,6 @@
                     <div class="solo-section"><div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1.5px solid rgba(255,255,255,0.2); margin-bottom:10px;"><div class="solo-section-title" style="border:none; margin:0;">Gallery</div>${isAdmin ? `<button class="char-btn-ui" style="border-color:#ffcc00; color:#ffcc00;" onclick="openGalleryMgmt()">edit gallery</button>` : ''}</div><div id="solo-gallery-area">${galH}</div></div>
                 </div>
             </div>`;
-        updateFloatingUI();
     }
 
     function openGalleryMgmt() {
@@ -965,7 +962,13 @@
     }
 
     function saveSoloBio() { currentlyViewedChar.bio = document.getElementById('solo-bio-input').value.trim(); syncData(); showToast("บันทึกข้อมูลสำเร็จ"); showSoloViewActual(); }
-    function closeSoloView() { document.getElementById('page-char-solo').style.display = 'none'; document.getElementById('char-main-list').style.display = 'block'; renderView(); }
+    
+    function closeSoloView(shouldPush = true) { 
+        if (shouldPush) history.back();
+        document.getElementById('page-char-solo').style.display = 'none'; 
+        document.getElementById('char-main-list').style.display = 'block'; 
+        renderView(); 
+    }
 
     function openProfileMgmt() { const m = document.getElementById('profile-mgmt-modal'); document.getElementById('p-mgmt-name').value = rootData.profile.name; document.getElementById('p-mgmt-bio').value = rootData.profile.bio; document.getElementById('p-mgmt-pfp').value = rootData.profile.pfp.startsWith('data:') ? "" : rootData.profile.pfp; document.getElementById('p-mgmt-frame').value = rootData.profile.frame.startsWith('data:') ? "" : rootData.profile.frame; m.style.display = 'flex'; m.querySelector('.modal-content').scrollTop = 0; }
     function saveProfileMgmt() { rootData.profile.name = document.getElementById('p-mgmt-name').value.trim() || "Dominic"; rootData.profile.bio = document.getElementById('p-mgmt-bio').value.trim(); rootData.profile.pfp = document.getElementById('p-mgmt-pfp').value.trim() || NEW_DEFAULT_IMG; rootData.profile.frame = document.getElementById('p-mgmt-frame').value.trim() || ROSE_FRAME_ID; document.getElementById('profile-mgmt-modal').style.display = 'none'; syncData(); renderView(); }
